@@ -17,6 +17,58 @@
   --font-sans: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
   --radius: 3px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring: cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+
+@keyframes app-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bg-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes playback-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    text-shadow: 0 0 12px oklch(0.55 0.16 45 / 0.35);
+  }
+}
+
+@keyframes chart-now-pulse {
+  0%,
+  100% {
+    stroke-opacity: 0.55;
+  }
+  50% {
+    stroke-opacity: 1;
+  }
+}
+
+@keyframes chart-dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
 }
 
 *,
@@ -36,9 +88,33 @@ body {
   font-family: var(--font-sans);
   font-weight: 400;
   font-synthesis: none;
-  background: var(--bg);
+  background: linear-gradient(
+    135deg,
+    var(--bg) 0%,
+    oklch(0.982 0.012 48) 35%,
+    oklch(0.988 0.006 54) 65%,
+    var(--bg) 100%
+  );
+  background-size: 220% 220%;
+  animation: bg-drift 28s ease-in-out infinite;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+.app-enter-item {
+  animation: app-enter 0.72s var(--ease) both;
+}
+
+.app-title.app-enter-item {
+  animation-delay: 0.04s;
+}
+
+.viz-column.app-enter-item {
+  animation-delay: 0.12s;
+}
+
+.sidebar.app-enter-item {
+  animation-delay: 0.2s;
 }
 
 .app {
@@ -150,6 +226,12 @@ body {
   flex: 1;
   width: 100%;
   min-height: 0;
+  position: relative;
+  transition: filter 0.45s var(--ease);
+}
+
+.bloch-sphere-wrap.is-playing .bloch-sphere {
+  filter: saturate(1.06) contrast(1.02);
 }
 
 .bloch-sphere {
@@ -186,6 +268,44 @@ body {
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
   padding: 0.35rem 0 0.5rem;
+  transition: color 0.3s var(--ease);
+}
+
+.playback.is-playing .playback-time {
+  color: var(--accent);
+  animation: playback-glow 2.4s ease-in-out infinite;
+}
+
+.playback-control-cluster {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playback-progress-ring {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  pointer-events: none;
+}
+
+.playback-progress-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.playback-progress-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.08s linear;
+}
+
+.playback.is-playing .playback-progress-fill {
+  filter: drop-shadow(0 0 4px oklch(0.55 0.16 45 / 0.45));
 }
 
 .icon-btn {
@@ -200,13 +320,33 @@ body {
   background: var(--accent);
   color: var(--bg);
   cursor: pointer;
-  transition: background 0.18s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
+  transition:
+    background 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    transform 0.22s var(--spring),
+    box-shadow 0.22s var(--ease);
 }
 
 .icon-btn:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
   color: var(--bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px oklch(0.55 0.16 45 / 0.22);
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.94);
+  box-shadow: none;
+}
+
+.playback-primary:not(:disabled) {
+  box-shadow: 0 0 0 0 oklch(0.55 0.16 45 / 0.35);
+}
+
+.icon-btn-reset:hover:not(:disabled) .reset-icon {
+  transform: rotate(-90deg);
 }
 
 .icon-btn:focus-visible {
@@ -225,6 +365,7 @@ body {
   height: 16px;
   /* Source art is black; invert so it matches the light play/pause icons */
   filter: invert(1);
+  transition: transform 0.35s var(--spring);
 }
 
 .hamiltonian-controls {
@@ -268,7 +409,16 @@ body {
   background: var(--bg-panel);
   color: var(--text);
   cursor: pointer;
-  transition: background 0.18s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
+  transition:
+    background 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    transform 0.22s var(--spring),
+    box-shadow 0.22s var(--ease);
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn:focus-visible {
@@ -292,6 +442,8 @@ body {
   background: var(--accent-fill);
   border-color: var(--accent);
   color: var(--accent);
+  box-shadow: 0 0 0 1px oklch(0.55 0.16 45 / 0.12);
+  transform: translateY(-1px);
 }
 
 .btn-ghost.state-btn,
@@ -329,6 +481,18 @@ body {
   border-radius: 1px;
   transform: translateY(-50%);
   pointer-events: none;
+  overflow: hidden;
+}
+
+.slider-track::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--slider-fill, 50%);
+  background: linear-gradient(90deg, oklch(0.96 0.03 50 / 0.5), var(--accent-fill));
+  transition: width 0.22s var(--ease);
 }
 
 .slider-tick {
@@ -401,6 +565,12 @@ input[type='range']::-webkit-slider-thumb {
   border: 1px solid var(--accent);
   border-radius: 1px;
   cursor: grab;
+  transition: box-shadow 0.2s var(--ease), transform 0.2s var(--spring);
+}
+
+input[type='range']:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px oklch(0.55 0.16 45 / 0.18);
+  transform: scaleY(1.08);
 }
 
 input[type='range']::-moz-range-track {
@@ -418,6 +588,12 @@ input[type='range']::-moz-range-thumb {
   border: 1px solid var(--accent);
   border-radius: 1px;
   cursor: grab;
+  transition: box-shadow 0.2s var(--ease), transform 0.2s var(--spring);
+}
+
+input[type='range']:active::-moz-range-thumb {
+  box-shadow: 0 0 0 3px oklch(0.55 0.16 45 / 0.18);
+  transform: scaleY(1.08);
 }
 
 .popover-trigger {
@@ -499,8 +675,33 @@ input[type='range']::-moz-range-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+    background: var(--bg);
+  }
+
+  .app-enter-item {
+    animation: none;
+  }
+
   .popover-panel {
     transition: none !important;
+  }
+
+  .playback.is-playing .playback-time,
+  .prob-chart.is-playing .prob-chart-now,
+  .prob-chart.is-playing .prob-chart-dot-0,
+  .prob-chart.is-playing .prob-chart-dot-1 {
+    animation: none;
+  }
+
+  .icon-btn:hover:not(:disabled),
+  .btn-ghost.active {
+    transform: none;
+  }
+
+  .prob-fill {
+    transition: width 0.08s linear;
   }
 }
 
@@ -646,7 +847,8 @@ input[type='range']::-moz-range-thumb {
 .prob-fill {
   height: 100%;
   border-radius: 1px;
-  transition: width 0.08s linear;
+  transition: width 0.28s var(--spring);
+  transform-origin: left center;
 }
 
 .prob-fill-0 {
@@ -715,6 +917,18 @@ input[type='range']::-moz-range-thumb {
   stroke-width: 1.75;
   stroke-linejoin: round;
   stroke-linecap: round;
+  transition: stroke-width 0.3s var(--ease);
+}
+
+.prob-chart-glow {
+  stroke-width: 3.5;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.prob-chart.is-playing .prob-chart-p0,
+.prob-chart.is-playing .prob-chart-p1 {
+  stroke-width: 2;
 }
 
 .prob-chart-p0 {
@@ -730,18 +944,40 @@ input[type='range']::-moz-range-thumb {
   stroke-width: 1;
   stroke-dasharray: 2 2;
   fill: none;
+  transition: stroke 0.3s var(--ease), stroke-width 0.3s var(--ease);
+}
+
+.prob-chart.is-playing .prob-chart-now {
+  stroke: var(--accent);
+  stroke-width: 1.25;
+  animation: chart-now-pulse 1.6s ease-in-out infinite;
 }
 
 .prob-chart-dot-0 {
   fill: var(--accent);
   stroke: var(--bg-panel);
   stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: r 0.2s var(--spring);
 }
 
 .prob-chart-dot-1 {
   fill: var(--accent-2);
   stroke: var(--bg-panel);
   stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.2s var(--spring);
+}
+
+.prob-chart.is-playing .prob-chart-dot-0,
+.prob-chart.is-playing .prob-chart-dot-1 {
+  animation: chart-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.prob-chart.is-playing .prob-chart-dot-1 {
+  animation-delay: 0.15s;
 }
 
 .teaching-box {
@@ -749,6 +985,15 @@ input[type='range']::-moz-range-thumb {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.75rem;
+  transition:
+    background 0.35s var(--ease),
+    border-color 0.35s var(--ease),
+    box-shadow 0.35s var(--ease);
+}
+
+.teaching-box:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 6px 20px oklch(0.55 0.16 45 / 0.08);
 }
 
 .teaching-box p {
