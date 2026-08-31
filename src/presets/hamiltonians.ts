@@ -22,12 +22,6 @@ export const HAMILTONIAN_PRESETS = [
     title: 'Drive off resonance: ω and Ωx',
     params: { omega: 1.5, OmegaX: 2, OmegaY: 0 },
   },
-  {
-    id: 'h0',
-    label: 'H = 0',
-    title: 'No evolution',
-    params: { omega: 0, OmegaX: 0, OmegaY: 0 },
-  },
 ] as const
 
 export type HamiltonianPresetId = (typeof HAMILTONIAN_PRESETS)[number]['id']
