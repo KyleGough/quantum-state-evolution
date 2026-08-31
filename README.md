@@ -44,12 +44,10 @@ $$
 
 ## Probabilities
 
-A computational-basis measurement of $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ yields $|0\rangle$ or $|1\rangle$. The Born rule gives the two outcome probabilities:
+A computational-basis measurement of $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ either yields $|0\rangle$ or $|1\rangle$. Probabilities are shows as bars at the current time and as a plot verses $t$. The Born rule gives the two outcome probabilities:
 
 $$
-P(|0\rangle) = |\alpha|^2 = \alpha\alpha^* = |\langle 0|\psi\rangle|^2,
+P(|0\rangle) = |\alpha|^2 = \alpha\alpha^* = |\langle0|\psi\rangle|^2,
 \qquad
-P(|1\rangle) = |\beta|^2 = \beta\beta^* = |\langle 1|\psi\rangle|^2,
+P(|1\rangle) = |\beta|^2 = \beta\beta^* = |\langle1|\psi\rangle|^2,
 $$
-
-with $|\alpha|^2 + |\beta|^2 = 1$. The app shows these as bars at the current time and as a plot versus $t$. On the Bloch sphere the north pole is guaranteed measurement of $|0\rangle$, the south pole is guaranteed measurement of $|1\rangle$.
