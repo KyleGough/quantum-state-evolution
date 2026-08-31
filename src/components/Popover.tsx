@@ -15,7 +15,7 @@ import { createPortal } from 'react-dom'
 
 const CLOSE_DELAY_MS = 125
 const DURATION_MS = 400
-const GAP_PX = 12
+const GAP_PX = 37
 const VIEW_MARGIN_PX = 8
 
 interface ExclusiveValue {
@@ -220,26 +220,26 @@ export function Popover({ content, children }: PopoverProps) {
 
   const panel = mounted
     ? createPortal(
-        <div
-          ref={panelRef}
-          id={tooltipId}
-          role="tooltip"
-          className="popover-panel"
-          aria-hidden={!shown}
-          style={{
-            top: coords.top,
-            left: coords.left,
-            opacity: shown ? 1 : 0,
-            pointerEvents: 'none',
-            transition: reduceMotion ? 'none' : `opacity ${DURATION_MS}ms var(--ease)`,
-          }}
-        >
-          <div ref={innerRef} className="popover-panel-inner">
-            {content}
-          </div>
-        </div>,
-        document.body,
-      )
+      <div
+        ref={panelRef}
+        id={tooltipId}
+        role="tooltip"
+        className="popover-panel"
+        aria-hidden={!shown}
+        style={{
+          top: coords.top,
+          left: coords.left,
+          opacity: shown ? 1 : 0,
+          pointerEvents: 'none',
+          transition: reduceMotion ? 'none' : `opacity ${DURATION_MS}ms var(--ease)`,
+        }}
+      >
+        <div ref={innerRef} className="popover-panel-inner">
+          {content}
+        </div>
+      </div>,
+      document.body,
+    )
     : null
 
   return (
