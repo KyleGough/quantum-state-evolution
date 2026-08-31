@@ -1,4 +1,5 @@
 import { useQuantumStore } from '../store/useQuantumStore'
+import { usePlaybackHotkeys } from '../playback/usePlaybackHotkeys'
 import resetIconUrl from '../assets/reset.png'
 
 function PlayIcon() {
@@ -32,6 +33,8 @@ function ResetIcon() {
 }
 
 export function PlaybackControls() {
+  usePlaybackHotkeys()
+
   const time = useQuantumStore((s) => s.time)
   const isPlaying = useQuantumStore((s) => s.isPlaying)
   const setPlaying = useQuantumStore((s) => s.setPlaying)
@@ -50,6 +53,8 @@ export function PlaybackControls() {
             onClick={() => setPlaying(true)}
             disabled={isPlaying}
             aria-label="Play"
+            aria-keyshortcuts="Space"
+            title="Play (Space)"
           >
             <PlayIcon />
           </button>
@@ -60,6 +65,8 @@ export function PlaybackControls() {
             onClick={() => setPlaying(false)}
             disabled={!isPlaying}
             aria-label="Pause"
+            aria-keyshortcuts="Space"
+            title="Pause (Space)"
           >
             <PauseIcon />
           </button>
@@ -69,6 +76,8 @@ export function PlaybackControls() {
             className="icon-btn"
             onClick={reset}
             aria-label="Reset"
+            aria-keyshortcuts="0"
+            title="Reset (0)"
           >
             <ResetIcon />
           </button>
