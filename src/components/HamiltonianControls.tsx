@@ -9,6 +9,13 @@ import { HamiltonianHint } from './SectionHints'
 const SLIDER_MIN = -4
 const SLIDER_MAX = 4
 const SLIDER_SCALE = 20
+const SLIDER_THUMB_PX = 7
+const SLIDER_TICKS = [-2, 0, 2] as const
+
+function tickLeft(value: number): string {
+  const t = (value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)
+  return `calc(${SLIDER_THUMB_PX / 2}px + ${t} * (100% - ${SLIDER_THUMB_PX}px))`
+}
 
 function SignedSlider({
   math,
@@ -28,7 +35,15 @@ function SignedSlider({
         <span className="slider-value">{formatRealFixed(value)}</span>
       </label>
       <div className="slider-track-wrap">
-        <span className="slider-zero-tick" aria-hidden="true" />
+        <span className="slider-track" aria-hidden="true" />
+        {SLIDER_TICKS.map((tick) => (
+          <span
+            key={tick}
+            className="slider-tick"
+            style={{ left: tickLeft(tick) }}
+            aria-hidden="true"
+          />
+        ))}
         <input
           type="range"
           min={SLIDER_MIN * SLIDER_SCALE}
