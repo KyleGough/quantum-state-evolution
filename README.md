@@ -47,7 +47,9 @@ $$
 A computational-basis measurement of $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ either yields $|0\rangle$ or $|1\rangle$. Probabilities are shows as bars at the current time and as a plot verses $t$. The Born rule gives the two outcome probabilities:
 
 $$
-P(|0\rangle) = |\alpha|^2 = \alpha\alpha^* = |\langle0|\psi\rangle|^2,
-\qquad
+P(|0\rangle) = |\alpha|^2 = \alpha\alpha^* = |\langle0|\psi\rangle|^2
+$$
+
+$$
 P(|1\rangle) = |\beta|^2 = \beta\beta^* = |\langle1|\psi\rangle|^2,
 $$
