@@ -8,12 +8,12 @@ Interactive single-qubit visualiser: tune a Hamiltonian, pick $|\psi(0)\rangle$,
 
 ## Hamiltonian
 
-$H$ is the energy operator. For one qubit it is a $2\times 2$ Hermitian matrix, so its eigenvalues are real and the propagator $e^{-iHt}$ is unitary. Any such $H$ is a real linear combination of Pauli matrices:
+The Hamiltonian, $H$ is the energy operator. For a single qubit it is a $2\times 2$ Hermitian matrix which has real eigenvalues and the propagator $e^{-iHt}$ is unitary. Any such $H$ is a real linear combination of the Pauli matrices:
 
 $$
-\sigma_x = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix},\quad
-\sigma_y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix},\quad
-\sigma_z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}.
+\sigma_x = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix},\quad
+\sigma_y = \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix},\quad
+\sigma_z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}.
 $$
 
 This app uses the rotating-frame form common in NMR and driven qubits:
@@ -34,16 +34,12 @@ $$
 \omega_R = \sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2},\qquad T = 2\pi/\omega_R.
 $$
 
-Three presets cover the usual textbook cases: **Larmor** ($\omega$ only), **resonant Rabi** ($\Omega_x$ only), and **detuned Rabi** ($\omega$ and $\Omega_x$).
-
 ## Evolution
 
-$H$ is time-independent, so the Schrödinger equation has the closed form
+$H$ is time-independent, so the Schrödinger equation has the closed form:
 
 $$
 |\psi(t)\rangle = e^{-iHt}\,|\psi(0)\rangle.
 $$
 
-The ket is $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ with $|\alpha|^2 + |\beta|^2 = 1$. Computational-basis probabilities follow the Born rule, $P(|0\rangle)=|\alpha|^2$ and $P(|1\rangle)=|\beta|^2$. The same state is the Bloch vector of Pauli expectations $\langle\vec{\sigma}\rangle$; the north pole is certain $|0\rangle$, the south pole certain $|1\rangle$.
-
-The propagator is the analytic $2\times 2$ matrix exponential of a Hermitian Hamiltonian (exact unitary, stable under scrubbing). Units are $\hbar = 1$.
+The app shows this state as it evolves: the ket $|\psi(t)\rangle = \alpha|0\rangle + \beta|1\rangle$, the Born-rule probabilities $P(|0\rangle)=|\alpha|^2$ and $P(|1\rangle)=|\beta|^2$ (bars and a plot versus $t$), and the Pauli expectations $\langle\vec{\sigma}\rangle$.
