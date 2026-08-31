@@ -1,9 +1,8 @@
 import { useQuantumStore } from '../store/useQuantumStore'
 import { INITIAL_STATE_PRESETS } from '../presets/hamiltonians'
 import { C } from '../sim/complex'
-import { evolutionKatex, probKetKatex } from '../sim/katexFormat'
+import { blochVectorKatex, evolutionKatex, probKetKatex, stateVectorKatex } from '../sim/katexFormat'
 import { KatexBlock, KatexInline } from './Katex'
-import { BlochVectorRow, StateVectorRow, TimeRow } from './MathDisplay'
 import { Popover, PopoverGroup } from './Popover'
 import { ProbabilityChart } from './ProbabilityChart'
 import {
@@ -71,7 +70,6 @@ function TeachingNote({
 }
 
 export function DiracPanel() {
-  const time = useQuantumStore((s) => s.time)
   const hamiltonian = useQuantumStore((s) => s.hamiltonian)
   const psi = useQuantumStore((s) => s.psi)
   const bloch = useQuantumStore((s) => s.bloch)
@@ -113,14 +111,13 @@ export function DiracPanel() {
           <section className="dirac-section">
             <h3 className="section-title">Evolution</h3>
             <KatexBlock math={evolutionKatex()} />
-            <TimeRow time={time} />
           </section>
         </Popover>
 
         <Popover content={<CurrentStateHint />}>
           <section className="dirac-section dirac-divided">
             <h3 className="section-title">Current state</h3>
-            <StateVectorRow alpha={alpha} beta={beta} />
+            <KatexBlock math={stateVectorKatex(alpha, beta)} className="math-katex-block" />
           </section>
         </Popover>
 
@@ -154,7 +151,7 @@ export function DiracPanel() {
         <Popover content={<BlochVectorHint />}>
           <section className="dirac-section">
             <h3 className="section-title">Bloch vector</h3>
-            <BlochVectorRow x={bloch.x} y={bloch.y} z={bloch.z} />
+            <KatexBlock math={blochVectorKatex(bloch.x, bloch.y, bloch.z)} className="math-katex-block" />
           </section>
         </Popover>
       </PopoverGroup>

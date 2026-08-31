@@ -10,8 +10,3 @@ export function evolveState(
   const U = matrixExpHermitian(H, t)
   return State.normalize(Mat.mulVec(U, psi0))
 }
-
-export function evolutionOperator(params: HamiltonianParams, t: number) {
-  const H = buildHamiltonian(params)
-  return matrixExpHermitian(H, t)
-}

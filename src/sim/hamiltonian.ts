@@ -17,11 +17,6 @@ export const SIGMA_Z: Matrix2 = [
   [C.zero(), C.from(-1, 0)],
 ]
 
-export const SIGMA_I: Matrix2 = [
-  [C.one(), C.zero()],
-  [C.zero(), C.one()],
-]
-
 export function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
   const scale = (m: Matrix2, s: number): Matrix2 => [
     [C.scale(m[0][0], s), C.scale(m[0][1], s)],
@@ -37,21 +32,6 @@ export function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
   h = add(h, scale(SIGMA_Y, hy))
   h = add(h, scale(SIGMA_Z, hz))
   return h
-}
-
-/** H = (ω/2)σ_z + (Ω/2)σ_x — driven qubit / Rabi Hamiltonian */
-export function rabiHamiltonian(omega: number, Omega: number): Matrix2 {
-  return pauliCombination(Omega / 2, 0, omega / 2)
-}
-
-/** H = (ω/2)σ_z — Larmor precession */
-export function larmorHamiltonian(omega: number): Matrix2 {
-  return pauliCombination(0, 0, omega / 2)
-}
-
-/** H = (Ω/2)σ_x — Rabi oscillation in X */
-export function rabiXHamiltonian(Omega: number): Matrix2 {
-  return pauliCombination(Omega / 2, 0, 0)
 }
 
 export interface HamiltonianParams {

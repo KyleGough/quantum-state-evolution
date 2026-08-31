@@ -5,8 +5,6 @@ import { State, type StateVector } from '../sim/state'
 import type { HamiltonianParams } from '../sim/hamiltonian'
 import type { InitialStateId } from '../presets/hamiltonians'
 
-const PLAYBACK_SPEED = 1
-
 function initialStateFromId(id: InitialStateId): StateVector {
   switch (id) {
     case 'zero':
@@ -23,7 +21,6 @@ function initialStateFromId(id: InitialStateId): StateVector {
 interface QuantumStore {
   time: number
   isPlaying: boolean
-  playbackSpeed: number
   hamiltonian: HamiltonianParams
   initialStateId: InitialStateId
   psi0: StateVector
@@ -32,12 +29,10 @@ interface QuantumStore {
 
   setTime: (t: number) => void
   setPlaying: (playing: boolean) => void
-  togglePlaying: () => void
   reset: () => void
   setHamiltonian: (params: Partial<HamiltonianParams>) => void
   setInitialState: (id: InitialStateId) => void
   tick: (dt: number) => void
-  recompute: () => void
 }
 
 function computeDerived(psi0: StateVector, hamiltonian: HamiltonianParams, time: number) {
@@ -54,7 +49,6 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
   return {
     time: 0,
     isPlaying: false,
-    playbackSpeed: PLAYBACK_SPEED,
     hamiltonian,
     initialStateId: 'plus',
     psi0,
@@ -67,8 +61,6 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
     },
 
     setPlaying: (playing) => set({ isPlaying: playing }),
-
-    togglePlaying: () => set((s) => ({ isPlaying: !s.isPlaying })),
 
     reset: () => {
       const { psi0, hamiltonian } = get()
@@ -103,28 +95,11 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
     },
 
     tick: (dt) => {
-      const { isPlaying, time, playbackSpeed, psi0, hamiltonian } = get()
+      const { isPlaying, time, psi0, hamiltonian } = get()
       if (!isPlaying) return
 
-      const next = time + dt * playbackSpeed
+      const next = time + dt
       set({ time: next, ...computeDerived(psi0, hamiltonian, next) })
-    },
-
-    recompute: () => {
-      const { time, psi0, hamiltonian } = get()
-      set(computeDerived(psi0, hamiltonian, time))
     },
   }
 })
-
-export function useQuantumSnapshot() {
-  return useQuantumStore((s) => ({
-    time: s.time,
-    isPlaying: s.isPlaying,
-    hamiltonian: s.hamiltonian,
-    initialStateId: s.initialStateId,
-    psi0: s.psi0,
-    psi: s.psi,
-    bloch: s.bloch,
-  }))
-}

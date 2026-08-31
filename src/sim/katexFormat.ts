@@ -64,10 +64,6 @@ export function probKetKatex(n: 0 | 1): string {
   return `P(${ket(String(n))})`
 }
 
-export function timeKatex(t: number): string {
-  return `t = ${t.toFixed(2)}`
-}
-
 export const SLIDER_OMEGA = `${String.raw`\omega`}~(${SIGMA}_z)`
 export const SLIDER_OMEGA_X = `${String.raw`\Omega`}_x~(${SIGMA}_x)`
 export const SLIDER_OMEGA_Y = `${String.raw`\Omega`}_y~(${SIGMA}_y)`
