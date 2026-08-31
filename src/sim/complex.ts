@@ -6,6 +6,9 @@ export interface Complex {
 export const C = {
   zero: (): Complex => ({ re: 0, im: 0 }),
   one: (): Complex => ({ re: 1, im: 0 }),
+  negone: (): Complex => ({ re: -1, im: 0 }),
+  i: (): Complex => ({ re: 0, im: 1 }),
+  negi: (): Complex => ({ re: 0, im: -1 }),
   from: (re: number, im = 0): Complex => ({ re, im }),
   add: (a: Complex, b: Complex): Complex => ({ re: a.re + b.re, im: a.im + b.im }),
   mul: (a: Complex, b: Complex): Complex => ({

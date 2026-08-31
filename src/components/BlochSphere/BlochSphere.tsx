@@ -7,7 +7,7 @@ import { ket } from '../../sim/katexFormat'
 import { MathLabel } from './MathLabel'
 import { createStateVectorMaterial, createTipMaterial, ROTATION_AXIS_COLOR } from './stateVectorMaterial'
 
-const TRAIL_LENGTH = 120
+const TRAIL_LENGTH = 140
 const TRAIL_WIDTH = 0.01
 const ARROW_HEAD_LENGTH = 0.018
 const ARROW_HEAD_WIDTH = 0.011

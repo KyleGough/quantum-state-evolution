@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import katex from 'katex'
 import { Html } from '@react-three/drei'
+import { renderKatex } from '../Katex'
 
 interface MathLabelProps {
   position: [number, number, number]
@@ -15,14 +15,7 @@ export function MathLabel({
   distanceFactor = 9,
   className = 'bloch-math-label',
 }: MathLabelProps) {
-  const html = useMemo(
-    () =>
-      katex.renderToString(math, {
-        throwOnError: false,
-        displayMode: false,
-      }),
-    [math],
-  )
+  const html = useMemo(() => renderKatex(math, false), [math])
 
   return (
     <Html

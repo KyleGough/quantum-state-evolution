@@ -7,19 +7,19 @@ export const State = {
   one: (): StateVector => [C.zero(), C.one()],
   plus: (): StateVector => {
     const s = 1 / Math.SQRT2
-    return [C.from(s, 0), C.from(s, 0)]
+    return [C.scale(C.one(), s), C.scale(C.one(), s)]
   },
   minus: (): StateVector => {
     const s = 1 / Math.SQRT2
-    return [C.from(s, 0), C.from(-s, 0)]
+    return [C.scale(C.one(), s), C.scale(C.negone(), s)]
   },
   plusI: (): StateVector => {
     const s = 1 / Math.SQRT2
-    return [C.from(s, 0), C.from(0, s)]
+    return [C.scale(C.one(), s), C.scale(C.i(), s)]
   },
   minusI: (): StateVector => {
     const s = 1 / Math.SQRT2
-    return [C.from(s, 0), C.from(0, -s)]
+    return [C.scale(C.one(), s), C.scale(C.negi(), s)]
   },
   normalize: (psi: StateVector): StateVector => {
     const norm = Math.sqrt(C.abs2(psi[0]) + C.abs2(psi[1]))

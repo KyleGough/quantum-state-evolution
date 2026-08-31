@@ -8,13 +8,13 @@ export const SIGMA_X: Matrix2 = [
 ]
 
 export const SIGMA_Y: Matrix2 = [
-  [C.zero(), C.from(0, -1)],
-  [C.from(0, 1), C.zero()],
+  [C.zero(), C.negi()],
+  [C.i(), C.zero()],
 ]
 
 export const SIGMA_Z: Matrix2 = [
   [C.one(), C.zero()],
-  [C.zero(), C.from(-1, 0)],
+  [C.zero(), C.negone()],
 ]
 
 export function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
@@ -82,7 +82,7 @@ export function matrixExpHermitian(H: Matrix2, t: number): Matrix2 {
 
   const cos = Math.cos(r * t)
   const sinOverR = Math.sin(r * t) / r
-  const minusI = C.from(0, -sinOverR)
+  const minusI = C.scale(C.negi(), sinOverR)
 
   const u00 = C.from(cos, -sinOverR * delta)
   const u01 = C.mul(minusI, b)
