@@ -22,20 +22,30 @@ export function formatComplexKatex(c: Complex): string {
 }
 
 export function hamiltonianKatex(params: HamiltonianParams): string {
-  const terms: string[] = []
+  const parts: { sign: number; tex: string }[] = []
 
-  if (Math.abs(params.omega) > 1e-6) {
-    terms.push(`\\frac{${params.omega.toFixed(2)}}{2}\\,\\sigma_z`)
-  }
-  if (Math.abs(params.Omega) > 1e-6) {
-    terms.push(`\\frac{${params.Omega.toFixed(2)}}{2}\\,\\sigma_x`)
-  }
-  if (Math.abs(params.OmegaY) > 1e-6) {
-    terms.push(`\\frac{${params.OmegaY.toFixed(2)}}{2}\\,\\sigma_y`)
+  const push = (coeff: number, sigma: string) => {
+    if (Math.abs(coeff) <= 1e-6) return
+    parts.push({
+      sign: coeff < 0 ? -1 : 1,
+      tex: `\\frac{${Math.abs(coeff).toFixed(2)}}{2}\\,${sigma}`,
+    })
   }
 
-  if (terms.length === 0) return 'H = 0'
-  return `H = ${terms.join(' + ')}`
+  push(params.omega, '\\sigma_z')
+  push(params.Omega, '\\sigma_x')
+  push(params.OmegaY, '\\sigma_y')
+
+  if (parts.length === 0) return 'H = 0'
+
+  const body = parts
+    .map((p, i) => {
+      if (i === 0) return p.sign < 0 ? `- ${p.tex}` : p.tex
+      return p.sign < 0 ? `- ${p.tex}` : `+ ${p.tex}`
+    })
+    .join(' ')
+
+  return `H = ${body}`
 }
 
 export function stateVectorKatex(alpha: Complex, beta: Complex): string {

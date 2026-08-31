@@ -127,6 +127,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0;
+  min-width: 0;
   overflow: hidden;
   border-left: 1px solid var(--border);
   background: var(--bg-panel);
@@ -225,7 +226,12 @@ body {
 }
 
 .hamiltonian-controls {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding-bottom: 1.25rem;
   margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--border);
@@ -324,11 +330,31 @@ body {
 }
 
 .slider-group {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 0;
   margin-bottom: 0.875rem;
 }
 
 .slider-group:last-child {
   margin-bottom: 0;
+}
+
+.slider-track-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.slider-zero-tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 10px;
+  background: var(--border-strong);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .slider-label {
@@ -351,7 +377,11 @@ body {
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
+  display: block;
   width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   height: 1.25rem;
   background: transparent;
   cursor: pointer;
@@ -367,6 +397,7 @@ input[type='range']:focus-visible {
 }
 
 input[type='range']::-webkit-slider-runnable-track {
+  width: 100%;
   height: 4px;
   background: var(--bg-muted);
   border: 1px solid var(--border);
@@ -391,6 +422,7 @@ input[type='range']::-webkit-slider-thumb:hover {
 }
 
 input[type='range']::-moz-range-track {
+  width: 100%;
   height: 4px;
   background: var(--bg-muted);
   border: 1px solid var(--border);
@@ -412,12 +444,20 @@ input[type='range']::-moz-range-thumb:hover {
 }
 
 .popover-trigger {
+  width: 100%;
+  min-width: 0;
   margin-bottom: 1.5rem;
   border-radius: var(--radius);
 }
 
 .popover-trigger .dirac-section {
   margin-bottom: 0;
+}
+
+.hamiltonian-controls > .popover-trigger {
+  margin-bottom: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .popover-trigger:focus {
@@ -434,7 +474,7 @@ input[type='range']::-moz-range-thumb:hover {
   z-index: 20;
   width: 17.5rem;
   overflow: hidden;
-  pointer-events: auto;
+  pointer-events: none;
   background: var(--bg);
   color: var(--text);
   border-radius: var(--radius);
@@ -442,6 +482,10 @@ input[type='range']::-moz-range-thumb:hover {
     0 0 0 1px var(--border-strong),
     0 1px 2px oklch(0.32 0.02 48 / 0.06),
     0 10px 28px oklch(0.32 0.02 48 / 0.12);
+}
+
+.popover-panel:has(.hint-pauli-row) {
+  width: 22.5rem;
 }
 
 .popover-panel-inner {
@@ -466,6 +510,17 @@ input[type='range']::-moz-range-thumb:hover {
   font-weight: 600;
 }
 
+.hint-pauli-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+}
+
+.hint-pauli-row .katex {
+  font-size: 0.88em;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .popover-panel {
     transition: none !important;
@@ -474,6 +529,11 @@ input[type='range']::-moz-range-thumb:hover {
 
 .dirac-section {
   margin-bottom: 1.5rem;
+}
+
+.dirac-divided {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .dirac-section:last-child {
@@ -503,15 +563,22 @@ input[type='range']::-moz-range-thumb:hover {
 }
 
 .hamiltonian-formula {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-bottom: 1rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .hamiltonian-formula .katex-display {
   margin: 0 !important;
   font-size: 1rem;
   min-height: 4.25rem;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -663,6 +730,85 @@ input[type='range']::-moz-range-thumb:hover {
   min-width: 4.5ch;
 }
 
+.prob-chart {
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.prob-chart-svg {
+  display: block;
+  width: 100%;
+  height: 8.5rem;
+  overflow: visible;
+}
+
+.prob-chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+  fill: none;
+}
+
+.prob-chart-axis {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  fill: none;
+}
+
+.prob-chart-tick {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.prob-chart-label,
+.prob-chart-axis-name {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.prob-chart-label {
+  fill: var(--text-dim);
+}
+
+.prob-chart-axis-name {
+  fill: var(--text-muted);
+}
+
+.prob-chart-p0,
+.prob-chart-p1 {
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.prob-chart-p0 {
+  stroke: var(--accent);
+}
+
+.prob-chart-p1 {
+  stroke: var(--accent-2);
+}
+
+.prob-chart-now {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  fill: none;
+}
+
+.prob-chart-dot-0 {
+  fill: var(--accent);
+  stroke: var(--bg-panel);
+  stroke-width: 1;
+}
+
+.prob-chart-dot-1 {
+  fill: var(--accent-2);
+  stroke: var(--bg-panel);
+  stroke-width: 1;
+}
+
 .teaching-box {
   background: var(--accent-fill);
   border: 1px solid var(--border);
@@ -675,6 +821,10 @@ input[type='range']::-moz-range-thumb:hover {
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--text-muted);
+}
+
+.teaching-box .katex {
+  font-size: 1em;
 }
 
 @media (max-width: 900px) {

@@ -1,4 +1,4 @@
-import { C, type Complex } from './complex'
+import { C } from './complex'
 import type { Matrix2 } from './state'
 
 /** Pauli matrices σ_x, σ_y, σ_z */
@@ -64,86 +64,41 @@ export function buildHamiltonian(params: HamiltonianParams): Matrix2 {
   return pauliCombination(params.Omega / 2, params.OmegaY / 2, params.omega / 2)
 }
 
-/** Hermitian 2×2 matrix exponential: U = exp(-i H t) */
+/**
+ * Hermitian 2×2 matrix exponential: U = exp(-i H t).
+ *
+ * Closed form: write H = (τ/2) I + H̃ with H̃ traceless, r = √(δ² + |b|²),
+ * then U = e^{-i (τ/2) t} [ cos(r t) I − i sinc(r t) t H̃ ].
+ * Avoids eigendecomposition, which is singular when H is diagonal.
+ */
 export function matrixExpHermitian(H: Matrix2, t: number): Matrix2 {
   const a = H[0][0].re
   const d = H[1][1].re
   const b = H[0][1]
-  const c = H[1][0]
 
-  const trace = a + d
-  const det = a * d - (b.re * c.re + b.im * c.im)
-  const halfTrace = trace / 2
-  const disc = halfTrace * halfTrace - det
+  const halfTrace = (a + d) / 2
+  const delta = (a - d) / 2
+  const r = Math.sqrt(delta * delta + C.abs2(b))
+  const globalPhase = C.exp(-halfTrace * t)
 
-  if (disc < -1e-12) {
-    throw new Error('Matrix is not Hermitian')
-  }
-
-  const sqrtDisc = Math.sqrt(Math.max(0, disc))
-  const lambda1 = halfTrace + sqrtDisc
-  const lambda2 = halfTrace - sqrtDisc
-
-  const diff = lambda1 - lambda2
-  if (Math.abs(diff) < 1e-10) {
-    const phase1 = C.exp(-lambda1 * t)
+  if (r < 1e-12) {
     return [
-      [phase1, C.zero()],
-      [C.zero(), phase1],
+      [globalPhase, C.zero()],
+      [C.zero(), globalPhase],
     ]
   }
 
-  const v1: [Complex, Complex] = [
-    C.from(b.re, b.im),
-    C.from(lambda1 - a, 0),
-  ]
-  const v2: [Complex, Complex] = [
-    C.from(b.re, b.im),
-    C.from(lambda2 - a, 0),
-  ]
+  const cos = Math.cos(r * t)
+  const sinOverR = Math.sin(r * t) / r
+  const minusI = C.from(0, -sinOverR)
 
-  const norm1 = Math.sqrt(C.abs2(v1[0]) + C.abs2(v1[1]))
-  const norm2 = Math.sqrt(C.abs2(v2[0]) + C.abs2(v2[1]))
-
-  const e1: [Complex, Complex] =
-    norm1 > 1e-10
-      ? [C.scale(v1[0], 1 / norm1), C.scale(v1[1], 1 / norm1)]
-      : [C.one(), C.zero()]
-  const e2: [Complex, Complex] =
-    norm2 > 1e-10
-      ? [C.scale(v2[0], 1 / norm2), C.scale(v2[1], 1 / norm2)]
-      : [C.zero(), C.one()]
-
-  const phase1 = C.exp(-lambda1 * t)
-  const phase2 = C.exp(-lambda2 * t)
-
-  const V: Matrix2 = [
-    [e1[0], e2[0]],
-    [e1[1], e2[1]],
-  ]
-  const Vdag = [
-    [C.conj(V[0][0]), C.conj(V[1][0])],
-    [C.conj(V[0][1]), C.conj(V[1][1])],
-  ] as Matrix2
-
-  const D: Matrix2 = [
-    [phase1, C.zero()],
-    [C.zero(), phase2],
-  ]
-
-  const VD = [
-    [C.mul(V[0][0], D[0][0]), C.mul(V[0][1], D[1][1])],
-    [C.mul(V[1][0], D[0][0]), C.mul(V[1][1], D[1][1])],
-  ] as Matrix2
+  const u00 = C.from(cos, -sinOverR * delta)
+  const u01 = C.mul(minusI, b)
+  const u10 = C.mul(minusI, C.conj(b))
+  const u11 = C.from(cos, sinOverR * delta)
 
   return [
-    [
-      C.add(C.mul(VD[0][0], Vdag[0][0]), C.mul(VD[0][1], Vdag[1][0])),
-      C.add(C.mul(VD[0][0], Vdag[0][1]), C.mul(VD[0][1], Vdag[1][1])),
-    ],
-    [
-      C.add(C.mul(VD[1][0], Vdag[0][0]), C.mul(VD[1][1], Vdag[1][0])),
-      C.add(C.mul(VD[1][0], Vdag[0][1]), C.mul(VD[1][1], Vdag[1][1])),
-    ],
+    [C.mul(globalPhase, u00), C.mul(globalPhase, u01)],
+    [C.mul(globalPhase, u10), C.mul(globalPhase, u11)],
   ]
 }

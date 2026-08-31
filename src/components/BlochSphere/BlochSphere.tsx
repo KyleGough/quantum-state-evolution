@@ -5,27 +5,37 @@ import * as THREE from 'three'
 import { useQuantumStore } from '../../store/useQuantumStore'
 import { ket } from '../../sim/katexFormat'
 import { MathLabel } from './MathLabel'
-import { createStateVectorMaterial, createTipMaterial } from './stateVectorMaterial'
+import { createStateVectorMaterial, createTipMaterial, ROTATION_AXIS_COLOR } from './stateVectorMaterial'
 
-const TRAIL_LENGTH = 80
+const TRAIL_LENGTH = 120
+const TRAIL_WIDTH = 0.01
 const ARROW_HEAD_LENGTH = 0.018
 const ARROW_HEAD_WIDTH = 0.011
 const ARROW_SHAFT_WIDTH = 0.0045
-const TIP_RADIUS = 0.011
+const TIP_RADIUS = 0.014
 const AXIS_LEN = 1.02
 const AXIS_HEAD_LENGTH = 0.042
 const AXIS_HEAD_WIDTH = 0.016
 const AXIS_SHAFT_WIDTH = 0.0032
+const CROSS_ARM = 0.04
+const CROSS_THICK = 0.002
+const CROSS_RADIUS = 1
+
+const _dir = new THREE.Vector3()
+const _tangent = new THREE.Vector3()
+const _side = new THREE.Vector3()
+const _toCam = new THREE.Vector3()
+const _upZ = new THREE.Vector3(0, 0, 1)
 
 const COORDINATE_AXES: {
   blochDir: [number, number, number]
   label: string
   labelBloch: [number, number, number]
 }[] = [
-  { blochDir: [1, 0, 0], label: 'x', labelBloch: [1.34, 0, -0.16] },
-  { blochDir: [0, 1, 0], label: 'y', labelBloch: [0, 1.34, 0.1] },
-  { blochDir: [0, 0, 1], label: 'z', labelBloch: [0.16, 0, 1.3] },
-]
+    { blochDir: [1, 0, 0], label: 'x', labelBloch: [1.34, 0, -0.16] },
+    { blochDir: [0, 1, 0], label: 'y', labelBloch: [0, 1.34, 0.1] },
+    { blochDir: [0, 0, 1], label: 'z', labelBloch: [0.16, 0, 1.3] },
+  ]
 
 function blochToThree(x: number, y: number, z: number): THREE.Vector3 {
   return new THREE.Vector3(x, z, y)
@@ -103,6 +113,7 @@ function createTrailMaterial() {
     transparent: true,
     depthWrite: false,
     toneMapped: false,
+    side: THREE.DoubleSide,
   })
 }
 
@@ -234,15 +245,116 @@ function CoordinateAxes() {
   )
 }
 
+function RotationAxisCross() {
+  const groupRef = useRef<THREE.Group>(null)
+  const material = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: ROTATION_AXIS_COLOR,
+        toneMapped: false,
+        depthWrite: false,
+      }),
+    [],
+  )
+
+  useFrame(() => {
+    const group = groupRef.current
+    if (!group) return
+
+    const { hamiltonian } = useQuantumStore.getState()
+    const len = Math.hypot(hamiltonian.Omega, hamiltonian.OmegaY, hamiltonian.omega)
+    if (len < 1e-6) {
+      group.visible = false
+      return
+    }
+
+    group.visible = true
+    _dir.copy(blochToThree(hamiltonian.Omega / len, hamiltonian.OmegaY / len, hamiltonian.omega / len))
+    group.position.copy(_dir).multiplyScalar(CROSS_RADIUS)
+    group.quaternion.setFromUnitVectors(_upZ, _dir)
+  })
+
+  return (
+    <group ref={groupRef}>
+      <mesh material={material} renderOrder={3}>
+        <boxGeometry args={[CROSS_ARM, CROSS_THICK, CROSS_THICK]} />
+      </mesh>
+      <mesh material={material} renderOrder={3}>
+        <boxGeometry args={[CROSS_THICK, CROSS_ARM, CROSS_THICK]} />
+      </mesh>
+    </group>
+  )
+}
+
+function createTrailRibbon() {
+  const geometry = new THREE.BufferGeometry()
+  const vertCount = TRAIL_LENGTH * 2
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertCount * 3), 3))
+  geometry.setAttribute('aOpacity', new THREE.BufferAttribute(new Float32Array(vertCount), 1))
+
+  const indices = new Uint16Array((TRAIL_LENGTH - 1) * 6)
+  for (let i = 0; i < TRAIL_LENGTH - 1; i++) {
+    const a = i * 2
+    const o = i * 6
+    indices[o] = a
+    indices[o + 1] = a + 1
+    indices[o + 2] = a + 2
+    indices[o + 3] = a + 1
+    indices[o + 4] = a + 3
+    indices[o + 5] = a + 2
+  }
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1))
+  geometry.setDrawRange(0, 0)
+
+  const mesh = new THREE.Mesh(geometry, createTrailMaterial())
+  mesh.frustumCulled = false
+  mesh.renderOrder = 1
+  return mesh
+}
+
+function writeTrailRibbon(mesh: THREE.Mesh, points: THREE.Vector3[], cameraPos: THREE.Vector3) {
+  const count = points.length
+  if (count < 2) {
+    mesh.geometry.setDrawRange(0, 0)
+    return
+  }
+
+  const positions = mesh.geometry.getAttribute('position') as THREE.BufferAttribute
+  const opacities = mesh.geometry.getAttribute('aOpacity') as THREE.BufferAttribute
+  const half = TRAIL_WIDTH / 2
+  const lift = 1.004
+
+  for (let i = 0; i < count; i++) {
+    const p = points[i]
+    if (i < count - 1) _tangent.subVectors(points[i + 1], p)
+    else _tangent.subVectors(p, points[i - 1])
+    if (_tangent.lengthSq() < 1e-12) _tangent.set(0, 1, 0)
+    else _tangent.normalize()
+
+    _toCam.subVectors(cameraPos, p)
+    _side.crossVectors(_tangent, _toCam)
+    if (_side.lengthSq() < 1e-12) {
+      _side.crossVectors(_tangent, _upZ)
+      if (_side.lengthSq() < 1e-12) _side.set(1, 0, 0)
+    }
+    _side.normalize().multiplyScalar(half)
+
+    positions.setXYZ(i * 2, p.x * lift + _side.x, p.y * lift + _side.y, p.z * lift + _side.z)
+    positions.setXYZ(i * 2 + 1, p.x * lift - _side.x, p.y * lift - _side.y, p.z * lift - _side.z)
+
+    const opacity = trailOpacity(i, count)
+    opacities.setX(i * 2, opacity)
+    opacities.setX(i * 2 + 1, opacity)
+  }
+
+  positions.needsUpdate = true
+  opacities.needsUpdate = true
+  mesh.geometry.setDrawRange(0, (count - 1) * 6)
+}
+
 function BlochScene() {
   const trailPoints = useRef<THREE.Vector3[]>([])
-  const trailLine = useMemo(() => {
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRAIL_LENGTH * 3), 3))
-    geometry.setAttribute('aOpacity', new THREE.BufferAttribute(new Float32Array(TRAIL_LENGTH), 1))
-    geometry.setDrawRange(0, 0)
-    return new THREE.Line(geometry, createTrailMaterial())
-  }, [])
+  const trailMesh = useMemo(() => createTrailRibbon(), [])
 
   const lastTime = useRef(-1)
 
@@ -266,13 +378,13 @@ function BlochScene() {
     [],
   )
 
-  useFrame(() => {
+  useFrame((state) => {
     const { bloch, time, isPlaying } = useQuantumStore.getState()
     const target = blochToThree(bloch.x, bloch.y, bloch.z)
 
     if (!isPlaying && Math.abs(time - lastTime.current) > 0.02) {
       trailPoints.current = []
-      trailLine.geometry.setDrawRange(0, 0)
+      trailMesh.geometry.setDrawRange(0, 0)
     }
     lastTime.current = time
 
@@ -283,20 +395,7 @@ function BlochScene() {
       }
     }
 
-    const points = trailPoints.current
-    const count = points.length
-    if (count > 1) {
-      const positions = trailLine.geometry.getAttribute('position') as THREE.BufferAttribute
-      const opacities = trailLine.geometry.getAttribute('aOpacity') as THREE.BufferAttribute
-      for (let i = 0; i < count; i++) {
-        const p = points[i]
-        positions.setXYZ(i, p.x, p.y, p.z)
-        opacities.setX(i, trailOpacity(i, count))
-      }
-      positions.needsUpdate = true
-      opacities.needsUpdate = true
-      trailLine.geometry.setDrawRange(0, count)
-    }
+    writeTrailRibbon(trailMesh, trailPoints.current, state.camera.position)
   })
 
   return (
@@ -331,7 +430,8 @@ function BlochScene() {
       <MathLabel position={[-1.14, 0, 0]} math={ket('{-}')} distanceFactor={10} />
 
       <CoordinateAxes />
-      <primitive object={trailLine} />
+      <RotationAxisCross />
+      <primitive object={trailMesh} />
       <StateVector />
       <OrbitControls enablePan={false} minDistance={2.4} maxDistance={4.5} />
     </>

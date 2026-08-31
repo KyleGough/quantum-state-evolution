@@ -230,12 +230,9 @@ export function Popover({ content, children }: PopoverProps) {
             top: coords.top,
             left: coords.left,
             opacity: shown ? 1 : 0,
-            pointerEvents: shown ? 'auto' : 'none',
+            pointerEvents: 'none',
             transition: reduceMotion ? 'none' : `opacity ${DURATION_MS}ms var(--ease)`,
           }}
-          onPointerEnter={tryOpen}
-          onPointerLeave={scheduleClose}
-          onMouseDown={(event) => event.preventDefault()}
         >
           <div ref={innerRef} className="popover-panel-inner">
             {content}

@@ -5,6 +5,7 @@ import { evolutionKatex, probKetKatex } from '../sim/katexFormat'
 import { KatexBlock, KatexInline } from './Katex'
 import { BlochVectorRow, StateVectorRow, TimeRow } from './MathDisplay'
 import { Popover, PopoverGroup } from './Popover'
+import { ProbabilityChart } from './ProbabilityChart'
 import {
   BlochVectorHint,
   CurrentStateHint,
@@ -13,18 +14,60 @@ import {
   ProbabilitiesHint,
 } from './SectionHints'
 
-function findTeachingNote(hamiltonian: { omega: number; Omega: number; OmegaY: number }): string {
+function signedAxis(v: number, pos: string, neg: string): string {
+  return v < 0 ? neg : pos
+}
+
+function TeachingNote({
+  hamiltonian,
+}: {
+  hamiltonian: { omega: number; Omega: number; OmegaY: number }
+}) {
   const { omega, Omega, OmegaY } = hamiltonian
-  if (Omega < 0.01 && OmegaY < 0.01) {
-    return 'Dominant σ_z term: the Bloch vector precesses around the Z axis at rate ω.'
+  const ax = Math.abs(Omega)
+  const ay = Math.abs(OmegaY)
+  const az = Math.abs(omega)
+
+  if (ax < 0.01 && ay < 0.01 && az < 0.01) {
+    return (
+      <p>
+        <KatexInline math="H = 0" />: the state is stationary.
+      </p>
+    )
   }
-  if (omega < 0.01 && OmegaY < 0.01) {
-    return 'Dominant σ_x term: the Bloch vector rotates around the X axis at Rabi frequency Ω.'
+  if (ax < 0.01 && ay < 0.01) {
+    return (
+      <p>
+        Dominant <KatexInline math={String.raw`\sigma_z`} /> term: the Bloch vector
+        precesses around the <KatexInline math={signedAxis(omega, '+z', '-z')} /> axis
+        at rate <KatexInline math={String.raw`|\omega|`} />.
+      </p>
+    )
   }
-  if (omega < 0.01 && Omega < 0.01) {
-    return 'Dominant σ_y term: the Bloch vector rotates around the Y axis.'
+  if (az < 0.01 && ay < 0.01) {
+    return (
+      <p>
+        Dominant <KatexInline math={String.raw`\sigma_x`} /> term: the Bloch vector
+        rotates around the <KatexInline math={signedAxis(Omega, '+x', '-x')} /> axis at
+        Rabi frequency <KatexInline math={String.raw`|\Omega|`} />.
+      </p>
+    )
   }
-  return 'General Pauli Hamiltonian: rotation about axis (Ω, Ω_y, ω) with speed ½√(ω² + Ω² + Ω_y²).'
+  if (az < 0.01 && ax < 0.01) {
+    return (
+      <p>
+        Dominant <KatexInline math={String.raw`\sigma_y`} /> term: the Bloch vector
+        rotates around the <KatexInline math={signedAxis(OmegaY, '+y', '-y')} /> axis.
+      </p>
+    )
+  }
+  return (
+    <p>
+      General Pauli Hamiltonian: rotation about axis{' '}
+      <KatexInline math={String.raw`(\Omega_x, \Omega_y, \omega)`} /> with angular speed{' '}
+      <KatexInline math={String.raw`\sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2}`} />.
+    </p>
+  )
 }
 
 export function DiracPanel() {
@@ -39,7 +82,6 @@ export function DiracPanel() {
   const beta = psi[1]
   const p0 = C.abs2(alpha)
   const p1 = C.abs2(beta)
-  const teaching = findTeachingNote(hamiltonian)
 
   return (
     <div className="dirac-panel">
@@ -76,14 +118,14 @@ export function DiracPanel() {
         </Popover>
 
         <Popover content={<CurrentStateHint />}>
-          <section className="dirac-section">
+          <section className="dirac-section dirac-divided">
             <h3 className="section-title">Current state</h3>
             <StateVectorRow alpha={alpha} beta={beta} />
           </section>
         </Popover>
 
         <Popover content={<ProbabilitiesHint />}>
-          <section className="dirac-section">
+          <section className="dirac-section dirac-divided">
             <h3 className="section-title">Probabilities</h3>
             <div className="prob-bars">
               <div className="prob-row">
@@ -105,6 +147,7 @@ export function DiracPanel() {
                 <span className="prob-value">{(p1 * 100).toFixed(1)}%</span>
               </div>
             </div>
+            <ProbabilityChart />
           </section>
         </Popover>
 
@@ -118,7 +161,7 @@ export function DiracPanel() {
 
       <section className="dirac-section teaching-box">
         <h3 className="section-title">What's happening?</h3>
-        <p>{teaching}</p>
+        <TeachingNote hamiltonian={hamiltonian} />
       </section>
     </div>
   )
