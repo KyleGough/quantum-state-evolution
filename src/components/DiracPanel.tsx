@@ -20,10 +20,10 @@ function signedAxis(v: number, pos: string, neg: string): string {
 function TeachingNote({
   hamiltonian,
 }: {
-  hamiltonian: { omega: number; Omega: number; OmegaY: number }
+  hamiltonian: { omega: number; OmegaX: number; OmegaY: number }
 }) {
-  const { omega, Omega, OmegaY } = hamiltonian
-  const ax = Math.abs(Omega)
+  const { omega, OmegaX, OmegaY } = hamiltonian
+  const ax = Math.abs(OmegaX)
   const ay = Math.abs(OmegaY)
   const az = Math.abs(omega)
 
@@ -47,8 +47,8 @@ function TeachingNote({
     return (
       <p>
         Dominant <KatexInline math={String.raw`\sigma_x`} /> term: the Bloch vector
-        rotates around the <KatexInline math={signedAxis(Omega, '+x', '-x')} /> axis at
-        Rabi frequency <KatexInline math={String.raw`|\Omega|`} />.
+        rotates around the <KatexInline math={signedAxis(OmegaX, '+x', '-x')} /> axis at
+        Rabi frequency <KatexInline math={String.raw`|\Omega_x|`} />.
       </p>
     )
   }

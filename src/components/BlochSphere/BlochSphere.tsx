@@ -262,14 +262,14 @@ function RotationAxisCross() {
     if (!group) return
 
     const { hamiltonian } = useQuantumStore.getState()
-    const len = Math.hypot(hamiltonian.Omega, hamiltonian.OmegaY, hamiltonian.omega)
+    const len = Math.hypot(hamiltonian.OmegaX, hamiltonian.OmegaY, hamiltonian.omega)
     if (len < 1e-6) {
       group.visible = false
       return
     }
 
     group.visible = true
-    _dir.copy(blochToThree(hamiltonian.Omega / len, hamiltonian.OmegaY / len, hamiltonian.omega / len))
+    _dir.copy(blochToThree(hamiltonian.OmegaX / len, hamiltonian.OmegaY / len, hamiltonian.omega / len))
     group.position.copy(_dir).multiplyScalar(CROSS_RADIUS)
     group.quaternion.setFromUnitVectors(_upZ, _dir)
   })

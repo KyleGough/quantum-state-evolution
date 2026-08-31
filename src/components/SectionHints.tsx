@@ -42,7 +42,7 @@ export function HamiltonianHint() {
         <KatexInline math={String.raw`\sigma_z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}`} />
       </p>
       <p>
-        On the Bloch sphere the rotation axis <KatexInline math={String.raw`(\Omega, \Omega_y, \omega)`} /> is the{' '}
+        On the Bloch sphere the rotation axis <KatexInline math={String.raw`(\Omega_x, \Omega_y, \omega)`} /> is the{' '}
         <span className="hint-bloch-tip" style={{ color: ROTATION_AXIS_COLOR }}>
           red
         </span>{' '}

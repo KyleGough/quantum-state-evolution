@@ -36,12 +36,12 @@ export function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
 
 export interface HamiltonianParams {
   omega: number
-  Omega: number
+  OmegaX: number
   OmegaY: number
 }
 
 export function buildHamiltonian(params: HamiltonianParams): Matrix2 {
-  return pauliCombination(params.Omega / 2, params.OmegaY / 2, params.omega / 2)
+  return pauliCombination(params.OmegaX / 2, params.OmegaY / 2, params.omega / 2)
 }
 
 /**

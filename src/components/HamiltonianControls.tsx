@@ -24,7 +24,7 @@ function SignedSlider({
         <span>
           <KatexInline math={math} />
         </span>
-        <span className="slider-value">{formatRealFixed(value, 2)}</span>
+        <span className="slider-value">{formatRealFixed(value)}</span>
       </label>
       <div className="slider-track-wrap">
         <span className="slider-zero-tick" aria-hidden="true" />
@@ -62,8 +62,8 @@ export function HamiltonianControls() {
       />
       <SignedSlider
         math={SLIDER_OMEGA_X}
-        value={hamiltonian.Omega}
-        onChange={(Omega) => setHamiltonian({ Omega })}
+        value={hamiltonian.OmegaX}
+        onChange={(OmegaX) => setHamiltonian({ OmegaX })}
       />
       <SignedSlider
         math={SLIDER_OMEGA_Y}

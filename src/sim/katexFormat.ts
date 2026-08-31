@@ -33,7 +33,7 @@ export function hamiltonianKatex(params: HamiltonianParams): string {
   }
 
   push(params.omega, '\\sigma_z')
-  push(params.Omega, '\\sigma_x')
+  push(params.OmegaX, '\\sigma_x')
   push(params.OmegaY, '\\sigma_y')
 
   if (parts.length === 0) return 'H = 0'
@@ -53,7 +53,7 @@ export function stateVectorKatex(alpha: Complex, beta: Complex): string {
 }
 
 export function blochVectorKatex(x: number, y: number, z: number): string {
-  return `${braket(SIGMA)} = (${formatRealFixed(x, 2)},\\; ${formatRealFixed(y, 2)},\\; ${formatRealFixed(z, 2)})`
+  return `${braket(SIGMA)} = (${formatRealFixed(x)},\\; ${formatRealFixed(y)},\\; ${formatRealFixed(z)})`
 }
 
 export function evolutionKatex(): string {

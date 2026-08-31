@@ -16,8 +16,8 @@ export interface AxisWindow {
 /** Initial x-span before playback has gone past t = 1. */
 export const MIN_AXIS_T = 1
 
-/** Widest x-span; beyond this the window slides as [t − 20, t]. */
-export const MAX_AXIS_SPAN = 20
+/** Widest x-span; beyond this the window slides as [t − 10, t]. */
+export const MAX_AXIS_SPAN = 10
 
 export function axisWindow(time: number): AxisWindow {
   const t = Math.max(0, time)
