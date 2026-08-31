@@ -25,8 +25,8 @@ H = \frac{\omega}{2}\sigma_z + \frac{\Omega_x}{2}\sigma_x + \frac{\Omega_y}{2}\s
 \vec{\Omega} = (\Omega_x,\,\Omega_y,\,\omega).
 $$
 
-- $\omega$ — detuning (Larmor mismatch) along $z$.
-- $\Omega_x$, $\Omega_y$ — transverse drive (Rabi frequencies).
+- $\omega$: detuning (Larmor mismatch) along $z$.
+- $\Omega_x$, $\Omega_y$: transverse drive (Rabi frequencies).
 
 The sign of each coefficient sets the sense of rotation about that axis. On the Bloch sphere the state precesses about $\vec{\Omega}$ at
 
@@ -42,4 +42,14 @@ $$
 |\psi(t)\rangle = e^{-iHt}\,|\psi(0)\rangle.
 $$
 
-The app shows this state as it evolves: the ket $|\psi(t)\rangle = \alpha|0\rangle + \beta|1\rangle$, the Born-rule probabilities $P(|0\rangle)=|\alpha|^2$ and $P(|1\rangle)=|\beta|^2$ (bars and a plot versus $t$), and the Pauli expectations $\langle\vec{\sigma}\rangle$.
+## Probabilities
+
+A computational-basis measurement of $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ yields $|0\rangle$ or $|1\rangle$. The Born rule gives the two outcome probabilities:
+
+$$
+P(|0\rangle) = |\alpha|^2 = \alpha\alpha^* = |\langle 0|\psi\rangle|^2,
+\qquad
+P(|1\rangle) = |\beta|^2 = \beta\beta^* = |\langle 1|\psi\rangle|^2,
+$$
+
+with $|\alpha|^2 + |\beta|^2 = 1$. The app shows these as bars at the current time and as a plot versus $t$. On the Bloch sphere the north pole is guaranteed measurement of $|0\rangle$, the south pole is guaranteed measurement of $|1\rangle$.
