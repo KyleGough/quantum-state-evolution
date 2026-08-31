@@ -19,10 +19,15 @@ $$
 This app uses the rotating-frame form common in NMR and driven qubits:
 
 $$
-H = \frac{\omega}{2}\sigma_z + \frac{\Omega_x}{2}\sigma_x + \frac{\Omega_y}{2}\sigma_y
-= \tfrac{1}{2}\vec{\Omega}\cdot\vec{\sigma},
-\qquad
 \vec{\Omega} = (\Omega_x\,\Omega_y\,\omega).
+$$
+
+$$
+H = \tfrac{1}{2}\vec{\Omega}\cdot\vec{\sigma}
+$$
+
+$$
+H = \frac{\omega}{2}\sigma_z + \frac{\Omega_x}{2}\sigma_x + \frac{\Omega_y}{2}\sigma_y
 $$
 
 - $\omega$: detuning (Larmor mismatch) along $z$.
