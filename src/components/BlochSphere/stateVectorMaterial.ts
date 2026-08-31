@@ -52,10 +52,10 @@ export function createStateVectorMaterial() {
   })
 }
 
-/** Marker color for the Bloch-sphere state tip. */
+/** Marker colour for the Bloch-sphere state tip. */
 export const BLOCH_TIP_COLOR = '#81DAFF'
 
-/** Marker color for the Hamiltonian rotation axis on the Bloch sphere. */
+/** Marker colour for the Hamiltonian rotation axis on the Bloch sphere. */
 export const ROTATION_AXIS_COLOR = '#c62828'
 
 export function createTipMaterial() {

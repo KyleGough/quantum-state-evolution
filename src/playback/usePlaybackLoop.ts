@@ -5,7 +5,7 @@ import { useQuantumStore } from '../store/useQuantumStore'
 const MAX_FRAME_DT = 0.5
 
 /** Drives playback via requestAnimationFrame for smooth 60fps updates.
- *  Hidden / minimized documents freeze simulation time without toggling play. */
+ *  Hidden / minimised documents freeze simulation time without toggling play. */
 export function usePlaybackLoop() {
   useEffect(() => {
     let raf = 0

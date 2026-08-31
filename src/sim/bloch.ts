@@ -7,7 +7,7 @@ export interface BlochVector {
   z: number
 }
 
-/** Map normalized |ψ⟩ = α|0⟩ + β|1⟩ to Bloch coordinates */
+/** Map normalised |ψ⟩ = α|0⟩ + β|1⟩ to Bloch coordinates */
 export function stateToBloch(psi: StateVector): BlochVector {
   const alpha = psi[0]
   const beta = psi[1]

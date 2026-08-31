@@ -43,7 +43,7 @@ export default function App() {
 
       <div className="app-body">
         <main className="app-main">
-          <section className="viz-column" aria-label="Bloch sphere visualization">
+          <section className="viz-column" aria-label="Bloch sphere visualisation">
             <BlochSphere />
             <PlaybackControls />
           </section>
