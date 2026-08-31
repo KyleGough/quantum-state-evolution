@@ -4,10 +4,10 @@ import { BLOCH_TIP_COLOR, ROTATION_AXIS_COLOR } from './BlochSphere/stateVectorM
 
 const PSI = String.raw`\psi`
 
-type BasisKet = '0' | '1' | '+' | '-'
+type BasisKet = '0' | '1' | '+' | '-' | '+i' | '-i'
 
 function basisKetMath(id: BasisKet): string {
-  return id === '+' || id === '-' ? ket(`{${id}}`) : ket(id)
+  return id === '0' || id === '1' ? ket(id) : ket(`{${id}}`)
 }
 
 function StateKet({ id }: { id: BasisKet }) {
@@ -64,6 +64,11 @@ export function InitialStateHint() {
         zero, Bloch <KatexInline math="+z" />.
       </p>
       <p>
+        <StateKet id="1" />{' '}
+        <KatexInline math={`= \\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}`} /> computational one,
+        Bloch <KatexInline math="-z" />.
+      </p>
+      <p>
         <StateKet id="+" />{' '}
         <KatexInline math={`= \\frac{1}{\\sqrt{2}}\\begin{pmatrix} 1 \\\\ 1 \\end{pmatrix}`} />{' '}
         equal superposition, Bloch <KatexInline math="+x" />.
@@ -74,9 +79,14 @@ export function InitialStateHint() {
         phase-flipped superposition, Bloch <KatexInline math="-x" />.
       </p>
       <p>
-        <StateKet id="1" />{' '}
-        <KatexInline math={`= \\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}`} /> computational one,
-        Bloch <KatexInline math="-z" />.
+        <StateKet id="+i" />{' '}
+        <KatexInline math={`= \\frac{1}{\\sqrt{2}}\\begin{pmatrix} 1 \\\\ i \\end{pmatrix}`} />{' '}
+        plus-i superposition, Bloch <KatexInline math="+y" />.
+      </p>
+      <p>
+        <StateKet id="-i" />{' '}
+        <KatexInline math={`= \\frac{1}{\\sqrt{2}}\\begin{pmatrix} 1 \\\\ -i \\end{pmatrix}`} />{' '}
+        minus-i superposition, Bloch <KatexInline math="-y" />.
       </p>
     </>
   )

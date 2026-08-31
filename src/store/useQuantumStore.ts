@@ -15,6 +15,10 @@ function initialStateFromId(id: InitialStateId): StateVector {
       return State.plus()
     case 'minus':
       return State.minus()
+    case 'plusI':
+      return State.plusI()
+    case 'minusI':
+      return State.minusI()
   }
 }
 

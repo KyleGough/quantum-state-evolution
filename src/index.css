@@ -592,7 +592,7 @@ input[type='range']::-moz-range-thumb:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
+  width: 2.75rem;
   height: 2.5rem;
   padding: 0;
   font-family: var(--font-mono);

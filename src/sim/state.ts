@@ -13,6 +13,14 @@ export const State = {
     const s = 1 / Math.SQRT2
     return [C.from(s, 0), C.from(-s, 0)]
   },
+  plusI: (): StateVector => {
+    const s = 1 / Math.SQRT2
+    return [C.from(s, 0), C.from(0, s)]
+  },
+  minusI: (): StateVector => {
+    const s = 1 / Math.SQRT2
+    return [C.from(s, 0), C.from(0, -s)]
+  },
   normalize: (psi: StateVector): StateVector => {
     const norm = Math.sqrt(C.abs2(psi[0]) + C.abs2(psi[1]))
     if (norm < 1e-12) return State.zero()

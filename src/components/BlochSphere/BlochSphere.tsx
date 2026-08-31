@@ -428,6 +428,8 @@ function BlochScene() {
       <MathLabel position={[0, -1.18, 0]} math={ket('1')} distanceFactor={10} />
       <MathLabel position={[1.14, 0, 0]} math={ket('{+}')} distanceFactor={10} />
       <MathLabel position={[-1.14, 0, 0]} math={ket('{-}')} distanceFactor={10} />
+      <MathLabel position={[0, 0, 1.14]} math={ket('{+i}')} distanceFactor={10} />
+      <MathLabel position={[0, 0, -1.14]} math={ket('{-i}')} distanceFactor={10} />
 
       <CoordinateAxes />
       <RotationAxisCross />
