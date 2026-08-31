@@ -53,27 +53,27 @@ export function HamiltonianControls() {
         <div className="panel-header">
           <span className="panel-label">Hamiltonian</span>
         </div>
+
+        <KatexBlock math={hamiltonianKatex(hamiltonian)} className="hamiltonian-formula" />
+
+        <div className="preset-row">
+          {HAMILTONIAN_PRESETS.map((preset) => {
+            const active = activePresetId === preset.id
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                className={`btn btn-ghost h-preset-btn ${active ? 'active' : ''}`}
+                aria-pressed={active}
+                title={preset.title}
+                onClick={() => setHamiltonian(preset.params)}
+              >
+                {preset.label}
+              </button>
+            )
+          })}
+        </div>
       </Popover>
-
-      <KatexBlock math={hamiltonianKatex(hamiltonian)} className="hamiltonian-formula" />
-
-      <div className="preset-row">
-        {HAMILTONIAN_PRESETS.map((preset) => {
-          const active = activePresetId === preset.id
-          return (
-            <button
-              key={preset.id}
-              type="button"
-              className={`btn btn-ghost h-preset-btn ${active ? 'active' : ''}`}
-              aria-pressed={active}
-              title={preset.title}
-              onClick={() => setHamiltonian(preset.params)}
-            >
-              {preset.label}
-            </button>
-          )
-        })}
-      </div>
 
       <SignedSlider
         math={SLIDER_OMEGA}

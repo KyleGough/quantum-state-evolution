@@ -128,7 +128,9 @@ body {
   flex-direction: column;
   gap: 0;
   min-width: 0;
-  overflow: hidden;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   border-left: 1px solid var(--border);
   background: var(--bg-panel);
 }
@@ -239,9 +241,7 @@ body {
 
 .dirac-panel {
   flex: 1;
-  min-height: 0;
   padding-top: 0.125rem;
-  overflow-y: auto;
 }
 
 .panel-header {
@@ -381,15 +381,10 @@ input[type='range']::-webkit-slider-thumb {
   width: 7px;
   height: 18px;
   margin-top: -8px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-strong);
+  background: var(--accent-fill);
+  border: 1px solid var(--accent);
   border-radius: 1px;
   cursor: grab;
-}
-
-input[type='range']::-webkit-slider-thumb:hover {
-  border-color: var(--accent);
-  background: var(--accent-fill);
 }
 
 input[type='range']::-moz-range-track {
@@ -403,15 +398,10 @@ input[type='range']::-moz-range-track {
 input[type='range']::-moz-range-thumb {
   width: 7px;
   height: 18px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-strong);
+  background: var(--accent-fill);
+  border: 1px solid var(--accent);
   border-radius: 1px;
   cursor: grab;
-}
-
-input[type='range']::-moz-range-thumb:hover {
-  border-color: var(--accent);
-  background: var(--accent-fill);
 }
 
 .popover-trigger {
