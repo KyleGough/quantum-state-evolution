@@ -36,27 +36,13 @@ const fragmentShader = /* glsl */ `
   }
 `
 
-export interface StateVectorMaterialOptions {
-  intensity?: number
-  core?: THREE.ColorRepresentation
-  hot?: THREE.ColorRepresentation
-  opacity?: number
-}
-
-export function createStateVectorMaterial(options: StateVectorMaterialOptions = {}) {
-  const {
-    intensity = 1.35,
-    core = '#c2410c',
-    hot = '#9a3412',
-    opacity = 0.18,
-  } = options
-
+export function createStateVectorMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uColorCore: { value: new THREE.Color(core) },
-      uColorHot: { value: new THREE.Color(hot) },
-      uIntensity: { value: intensity },
-      uOpacity: { value: opacity },
+      uColorCore: { value: new THREE.Color('#c2410c') },
+      uColorHot: { value: new THREE.Color('#9a3412') },
+      uIntensity: { value: 1.35 },
+      uOpacity: { value: 0.18 },
     },
     vertexShader,
     fragmentShader,

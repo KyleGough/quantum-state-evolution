@@ -24,11 +24,9 @@ export const HAMILTONIAN_PRESETS = [
   },
 ] as const
 
-export type HamiltonianPresetId = (typeof HAMILTONIAN_PRESETS)[number]['id']
-
 export function matchingHamiltonianPresetId(
   params: HamiltonianParams,
-): HamiltonianPresetId | null {
+): (typeof HAMILTONIAN_PRESETS)[number]['id'] | null {
   const found = HAMILTONIAN_PRESETS.find(
     (preset) =>
       Math.abs(preset.params.omega - params.omega) < PRESET_EPS &&

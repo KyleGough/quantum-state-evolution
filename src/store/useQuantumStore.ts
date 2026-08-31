@@ -31,7 +31,6 @@ interface QuantumStore {
   psi: StateVector
   bloch: BlochVector
 
-  setTime: (t: number) => void
   setPlaying: (playing: boolean) => void
   reset: () => void
   setHamiltonian: (params: Partial<HamiltonianParams>) => void
@@ -57,12 +56,6 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
     initialStateId: 'plus',
     psi0,
     ...derived,
-
-    setTime: (t) => {
-      const { psi0, hamiltonian } = get()
-      const clamped = Math.max(0, t)
-      set({ time: clamped, ...computeDerived(psi0, hamiltonian, clamped) })
-    },
 
     setPlaying: (playing) => set({ isPlaying: playing }),
 

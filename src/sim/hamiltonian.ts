@@ -2,22 +2,22 @@ import { C } from './complex'
 import type { Matrix2 } from './state'
 
 /** Pauli matrices σ_x, σ_y, σ_z */
-export const SIGMA_X: Matrix2 = [
+const SIGMA_X: Matrix2 = [
   [C.zero(), C.one()],
   [C.one(), C.zero()],
 ]
 
-export const SIGMA_Y: Matrix2 = [
+const SIGMA_Y: Matrix2 = [
   [C.zero(), C.negi()],
   [C.i(), C.zero()],
 ]
 
-export const SIGMA_Z: Matrix2 = [
+const SIGMA_Z: Matrix2 = [
   [C.one(), C.zero()],
   [C.zero(), C.negone()],
 ]
 
-export function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
+function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
   const scale = (m: Matrix2, s: number): Matrix2 => [
     [C.scale(m[0][0], s), C.scale(m[0][1], s)],
     [C.scale(m[1][0], s), C.scale(m[1][1], s)],

@@ -17,8 +17,8 @@ export function braket(content: string): string {
   return `${LANGLE}${content}${RANGLE}`
 }
 
-export function formatComplexKatex(c: Complex): string {
-  return `\\mathtt{${C.formatFixed(c, 2)}}`
+function formatComplexKatex(c: Complex): string {
+  return `\\mathtt{${C.formatFixed(c)}}`
 }
 
 export function rabiReadoutKatex(omegaR: number, period: number | null): string {

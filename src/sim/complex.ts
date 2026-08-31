@@ -18,7 +18,6 @@ export const C = {
   scale: (a: Complex, s: number): Complex => ({ re: a.re * s, im: a.im * s }),
   conj: (a: Complex): Complex => ({ re: a.re, im: -a.im }),
   abs2: (a: Complex): number => a.re * a.re + a.im * a.im,
-  abs: (a: Complex): number => Math.sqrt(C.abs2(a)),
   exp: (iPhase: number): Complex => ({
     re: Math.cos(iPhase),
     im: Math.sin(iPhase),
