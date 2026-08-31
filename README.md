@@ -39,7 +39,7 @@ $$
 $H$ is time-independent, so the Schrödinger equation has the closed form:
 
 $$
-|\psi(t)\rangle = e^{-iHt}\,|\psi(0)\rangle.
+|\psi(t)\rangle = e^{-iHt}|\psi(0)\rangle.
 $$
 
 ## Probabilities
