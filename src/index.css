@@ -582,10 +582,20 @@ input[type='range']::-moz-range-thumb:hover {
   font-size: 0.6875rem;
 }
 
+.preset-row,
 .state-preset-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+}
+
+.hamiltonian-controls .preset-row {
+  margin-bottom: 1rem;
+}
+
+.h-preset-btn {
+  padding: 0.32rem 0.55rem;
+  white-space: nowrap;
 }
 
 .state-btn {
@@ -740,6 +750,13 @@ input[type='range']::-moz-range-thumb:hover {
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--text-muted);
+}
+
+.teaching-box .teaching-readout {
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text);
 }
 
 .teaching-box .katex {

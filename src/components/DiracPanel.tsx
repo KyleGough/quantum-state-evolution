@@ -1,7 +1,8 @@
 import { useQuantumStore } from '../store/useQuantumStore'
 import { INITIAL_STATE_PRESETS } from '../presets/hamiltonians'
 import { C } from '../sim/complex'
-import { blochVectorKatex, evolutionKatex, probKetKatex, stateVectorKatex } from '../sim/katexFormat'
+import { blochPeriod, blochRate, type HamiltonianParams } from '../sim/hamiltonian'
+import { blochVectorKatex, evolutionKatex, probKetKatex, rabiReadoutKatex, stateVectorKatex } from '../sim/katexFormat'
 import { KatexBlock, KatexInline } from './Katex'
 import { Popover, PopoverGroup } from './Popover'
 import { ProbabilityChart } from './ProbabilityChart'
@@ -17,55 +18,62 @@ function signedAxis(v: number, pos: string, neg: string): string {
   return v < 0 ? neg : pos
 }
 
-function TeachingNote({
-  hamiltonian,
-}: {
-  hamiltonian: { omega: number; OmegaX: number; OmegaY: number }
-}) {
+function TeachingNote({ hamiltonian }: { hamiltonian: HamiltonianParams }) {
   const { omega, OmegaX, OmegaY } = hamiltonian
   const ax = Math.abs(OmegaX)
   const ay = Math.abs(OmegaY)
   const az = Math.abs(omega)
+  const omegaR = blochRate(hamiltonian)
+  const period = blochPeriod(hamiltonian)
 
+  let body
   if (ax < 0.01 && ay < 0.01 && az < 0.01) {
-    return (
+    body = (
       <p>
         <KatexInline math="H = 0" />: the state is stationary.
       </p>
     )
-  }
-  if (ax < 0.01 && ay < 0.01) {
-    return (
+  } else if (ax < 0.01 && ay < 0.01) {
+    body = (
       <p>
         Dominant <KatexInline math={String.raw`\sigma_z`} /> term: the Bloch vector
         precesses around the <KatexInline math={signedAxis(omega, '+z', '-z')} /> axis
-        at rate <KatexInline math={String.raw`|\omega|`} />.
+        at Larmor frequency <KatexInline math={String.raw`|\omega|`} />.
       </p>
     )
-  }
-  if (az < 0.01 && ay < 0.01) {
-    return (
+  } else if (az < 0.01 && ay < 0.01) {
+    body = (
       <p>
         Dominant <KatexInline math={String.raw`\sigma_x`} /> term: the Bloch vector
         rotates around the <KatexInline math={signedAxis(OmegaX, '+x', '-x')} /> axis at
         Rabi frequency <KatexInline math={String.raw`|\Omega_x|`} />.
       </p>
     )
-  }
-  if (az < 0.01 && ax < 0.01) {
-    return (
+  } else if (az < 0.01 && ax < 0.01) {
+    body = (
       <p>
         Dominant <KatexInline math={String.raw`\sigma_y`} /> term: the Bloch vector
-        rotates around the <KatexInline math={signedAxis(OmegaY, '+y', '-y')} /> axis.
+        rotates around the <KatexInline math={signedAxis(OmegaY, '+y', '-y')} /> axis at
+        Rabi frequency <KatexInline math={String.raw`|\Omega_y|`} />.
+      </p>
+    )
+  } else {
+    body = (
+      <p>
+        General Pauli Hamiltonian: rotation about axis{' '}
+        <KatexInline math={String.raw`(\Omega_x, \Omega_y, \omega)`} /> with angular speed{' '}
+        <KatexInline math={String.raw`\omega_R = \sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2}`} />.
       </p>
     )
   }
+
   return (
-    <p>
-      General Pauli Hamiltonian: rotation about axis{' '}
-      <KatexInline math={String.raw`(\Omega_x, \Omega_y, \omega)`} /> with angular speed{' '}
-      <KatexInline math={String.raw`\sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2}`} />.
-    </p>
+    <>
+      {body}
+      <p className="teaching-readout">
+        <KatexInline math={rabiReadoutKatex(omegaR, period)} />
+      </p>
+    </>
   )
 }
 

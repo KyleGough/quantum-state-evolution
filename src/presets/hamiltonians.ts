@@ -1,4 +1,48 @@
+import type { HamiltonianParams } from '../sim/hamiltonian'
 import { ket } from '../sim/katexFormat'
+
+const PRESET_EPS = 1e-9
+
+export const HAMILTONIAN_PRESETS = [
+  {
+    id: 'larmor',
+    label: 'Larmor',
+    title: 'Precession about z: ω only',
+    params: { omega: 2, OmegaX: 0, OmegaY: 0 },
+  },
+  {
+    id: 'rabi',
+    label: 'Resonant Rabi',
+    title: 'Drive on resonance: Ωx only',
+    params: { omega: 0, OmegaX: 2, OmegaY: 0 },
+  },
+  {
+    id: 'detuned',
+    label: 'Detuned Rabi',
+    title: 'Drive off resonance: ω and Ωx',
+    params: { omega: 1.5, OmegaX: 2, OmegaY: 0 },
+  },
+  {
+    id: 'h0',
+    label: 'H = 0',
+    title: 'No evolution',
+    params: { omega: 0, OmegaX: 0, OmegaY: 0 },
+  },
+] as const
+
+export type HamiltonianPresetId = (typeof HAMILTONIAN_PRESETS)[number]['id']
+
+export function matchingHamiltonianPresetId(
+  params: HamiltonianParams,
+): HamiltonianPresetId | null {
+  const found = HAMILTONIAN_PRESETS.find(
+    (preset) =>
+      Math.abs(preset.params.omega - params.omega) < PRESET_EPS &&
+      Math.abs(preset.params.OmegaX - params.OmegaX) < PRESET_EPS &&
+      Math.abs(preset.params.OmegaY - params.OmegaY) < PRESET_EPS,
+  )
+  return found?.id ?? null
+}
 
 export const INITIAL_STATE_PRESETS = [
   { id: 'zero', name: ket('0'), label: 'Computational zero' },

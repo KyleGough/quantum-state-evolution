@@ -44,6 +44,18 @@ export function buildHamiltonian(params: HamiltonianParams): Matrix2 {
   return pauliCombination(params.OmegaX / 2, params.OmegaY / 2, params.omega / 2)
 }
 
+/** Bloch rotation rate |Ω⃗| = √(ω² + Ωx² + Ωy²). H = (1/2) Ω⃗ · σ. */
+export function blochRate(params: HamiltonianParams): number {
+  return Math.hypot(params.omega, params.OmegaX, params.OmegaY)
+}
+
+/** Period of one Bloch revolution (and of P(t) for computational-basis Rabi). */
+export function blochPeriod(params: HamiltonianParams): number | null {
+  const rate = blochRate(params)
+  if (rate < 1e-12) return null
+  return (2 * Math.PI) / rate
+}
+
 /**
  * Hermitian 2×2 matrix exponential: U = exp(-i H t).
  *

@@ -46,7 +46,9 @@ export function HamiltonianHint() {
         <span className="hint-bloch-tip" style={{ color: ROTATION_AXIS_COLOR }}>
           red
         </span>{' '}
-        cross.
+        cross. The state precesses at{' '}
+        <KatexInline math={String.raw`\omega_R = \sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2}`} /> with
+        period <KatexInline math={String.raw`T = 2\pi/\omega_R`} />.
       </p>
     </>
   )

@@ -21,6 +21,12 @@ export function formatComplexKatex(c: Complex): string {
   return `\\mathtt{${C.formatFixed(c, 2)}}`
 }
 
+export function rabiReadoutKatex(omegaR: number, period: number | null): string {
+  const rate = omegaR.toFixed(2)
+  if (period === null) return String.raw`\omega_R = ${rate}`
+  return String.raw`\omega_R = ${rate},\quad T = 2\pi/\omega_R = ${period.toFixed(2)}`
+}
+
 export function hamiltonianKatex(params: HamiltonianParams): string {
   const parts: { sign: number; tex: string }[] = []
 

@@ -1,3 +1,4 @@
+import { HAMILTONIAN_PRESETS, matchingHamiltonianPresetId } from '../presets/hamiltonians'
 import { formatRealFixed } from '../sim/format'
 import { hamiltonianKatex, SLIDER_OMEGA, SLIDER_OMEGA_X, SLIDER_OMEGA_Y } from '../sim/katexFormat'
 import { useQuantumStore } from '../store/useQuantumStore'
@@ -44,6 +45,7 @@ function SignedSlider({
 export function HamiltonianControls() {
   const hamiltonian = useQuantumStore((s) => s.hamiltonian)
   const setHamiltonian = useQuantumStore((s) => s.setHamiltonian)
+  const activePresetId = matchingHamiltonianPresetId(hamiltonian)
 
   return (
     <div className="hamiltonian-controls">
@@ -54,6 +56,24 @@ export function HamiltonianControls() {
       </Popover>
 
       <KatexBlock math={hamiltonianKatex(hamiltonian)} className="hamiltonian-formula" />
+
+      <div className="preset-row">
+        {HAMILTONIAN_PRESETS.map((preset) => {
+          const active = activePresetId === preset.id
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              className={`btn btn-ghost h-preset-btn ${active ? 'active' : ''}`}
+              aria-pressed={active}
+              title={preset.title}
+              onClick={() => setHamiltonian(preset.params)}
+            >
+              {preset.label}
+            </button>
+          )
+        })}
+      </div>
 
       <SignedSlider
         math={SLIDER_OMEGA}
