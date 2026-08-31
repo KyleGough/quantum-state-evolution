@@ -11,16 +11,16 @@ Interactive single-qubit visualiser: tune a Hamiltonian, pick $|\psi(0)\rangle$,
 The Hamiltonian, $H$ is the energy operator. For a single qubit it is a $2\times 2$ Hermitian matrix which has real eigenvalues and the propagator $e^{-iHt}$ is unitary. Any such $H$ is a real linear combination of the Pauli matrices:
 
 $$
-\sigma_x = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix},\quad
-\sigma_y = \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix},\quad
-\sigma_z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}.
+\sigma_x = \begin{bmatrix} 0 & 1 \cr 1 & 0 \end{bmatrix},\quad
+\sigma_y = \begin{bmatrix} 0 & -i \cr i & 0 \end{bmatrix},\quad
+\sigma_z = \begin{bmatrix} 1 & 0 \cr 0 & -1 \end{bmatrix}.
 $$
 
 This app uses the rotating-frame form common in NMR and driven qubits:
 
 $$
 H = \frac{\omega}{2}\sigma_z + \frac{\Omega_x}{2}\sigma_x + \frac{\Omega_y}{2}\sigma_y
-= \tfrac{1}{2}\,\vec{\Omega}\cdot\vec{\sigma},
+= \tfrac{1}{2}\vec{\Omega}\cdot\vec{\sigma},
 \qquad
 \vec{\Omega} = (\Omega_x,\,\Omega_y,\,\omega).
 $$
