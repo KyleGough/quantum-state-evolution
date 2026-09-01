@@ -41,7 +41,7 @@ export function PlaybackControls() {
   const reset = useQuantumStore((s) => s.reset)
 
   return (
-    <footer className="playback">
+    <footer className={`playback${isPlaying ? ' is-playing' : ''}`}>
       <span className="playback-time">
         t = {time.toFixed(2)}
       </span>
@@ -73,7 +73,7 @@ export function PlaybackControls() {
 
           <button
             type="button"
-            className="icon-btn"
+            className="icon-btn icon-btn-reset"
             onClick={reset}
             aria-label="Reset"
             aria-keyshortcuts="0"

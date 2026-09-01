@@ -35,7 +35,9 @@ function formatTTick(t: number, span: number): string {
 
 export function ProbabilityChart() {
   const clipId = useId().replace(/:/g, '')
+  const glowId = useId().replace(/:/g, '')
   const time = useQuantumStore((s) => s.time)
+  const isPlaying = useQuantumStore((s) => s.isPlaying)
   const hamiltonian = useQuantumStore((s) => s.hamiltonian)
   const psi0 = useQuantumStore((s) => s.psi0)
   const psi = useQuantumStore((s) => s.psi)
@@ -65,7 +67,7 @@ export function ProbabilityChart() {
   const axisX = toX(tMin, tMin, tMax)
 
   return (
-    <figure className="prob-chart">
+    <figure className={`prob-chart${isPlaying ? ' is-playing' : ''}`}>
       <svg
         className="prob-chart-svg"
         viewBox={`0 0 ${VB_W} ${VB_H}`}
@@ -76,6 +78,13 @@ export function ProbabilityChart() {
           <clipPath id={clipId}>
             <rect x={PAD.l} y={PAD.t} width={PLOT_W} height={PLOT_H} />
           </clipPath>
+          <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="1.8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
         {yTicks.map((p) => (
@@ -151,6 +160,8 @@ export function ProbabilityChart() {
         </text>
 
         <g clipPath={`url(#${clipId})`}>
+          <path className="prob-chart-p0 prob-chart-glow" d={paths.d0} filter={`url(#${glowId})`} />
+          <path className="prob-chart-p1 prob-chart-glow" d={paths.d1} filter={`url(#${glowId})`} />
           <path className="prob-chart-p0" d={paths.d0} />
           <path className="prob-chart-p1" d={paths.d1} />
           <line

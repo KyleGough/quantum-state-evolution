@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { HAMILTONIAN_PRESETS, matchingHamiltonianPresetId } from '../presets/hamiltonians'
 import { formatRealFixed } from '../sim/format'
 import { hamiltonianKatex, SLIDER_OMEGA, SLIDER_OMEGA_X, SLIDER_OMEGA_Y } from '../sim/katexFormat'
@@ -17,6 +18,11 @@ function tickLeft(value: number): string {
   return `calc(${SLIDER_THUMB_PX / 2}px + ${t} * (100% - ${SLIDER_THUMB_PX}px))`
 }
 
+function sliderFill(value: number): CSSProperties {
+  const t = (value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)
+  return { '--slider-fill': `${t * 100}%` } as CSSProperties
+}
+
 function SignedSlider({
   math,
   value,
@@ -34,7 +40,7 @@ function SignedSlider({
         </span>
         <span className="slider-value">{formatRealFixed(value)}</span>
       </label>
-      <div className="slider-track-wrap">
+      <div className="slider-track-wrap" style={sliderFill(value)}>
         <span className="slider-track" aria-hidden="true" />
         {SLIDER_TICKS.map((tick) => (
           <span

@@ -16,8 +16,8 @@ export default function App() {
   usePlaybackLoop()
 
   return (
-    <div className="app">
-      <div className="app-title">
+    <div className="app app-enter">
+      <div className="app-title app-enter-item">
         <h1>Quantum State Evolution</h1>
         <p className="subtitle">Single-qubit Schrödinger evolution under a tunable Hamiltonian</p>
         <div className="app-byline">
@@ -41,14 +41,14 @@ export default function App() {
         </div>
       </div>
 
-      <div className="app-body">
+      <div className="app-body app-enter-item">
         <main className="app-main">
-          <section className="viz-column" aria-label="Bloch sphere visualisation">
+          <section className="viz-column app-enter-item" aria-label="Bloch sphere visualisation">
             <BlochSphere />
             <PlaybackControls />
           </section>
 
-          <aside className="sidebar">
+          <aside className="sidebar app-enter-item">
             <HamiltonianControls />
             <DiracPanel />
           </aside>
