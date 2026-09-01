@@ -15,6 +15,7 @@
   --state-ket: var(--text);
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', ui-monospace, monospace;
   --font-sans: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Hina Mincho', 'Times New Roman', serif;
   --radius: 3px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -60,8 +61,9 @@ body {
 
 .app-title h1 {
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 600;
   letter-spacing: 0;
   color: var(--accent);
 }
