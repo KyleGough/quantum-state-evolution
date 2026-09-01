@@ -223,19 +223,23 @@ function StateVector() {
   const tipRef = useRef<THREE.Mesh>(null)
   const tipGlowRef = useRef<THREE.Mesh>(null)
   const initialized = useRef(false)
+  const lastTime = useRef(-1)
 
   const vectorMaterial = useMemo(() => createStateVectorMaterial(), [])
   const tipMaterial = useMemo(() => createTipMaterial(), [])
   const tipGlowMaterial = useMemo(() => createTipGlowMaterial(), [])
 
   useFrame((state, delta) => {
-    const { bloch, isPlaying } = useQuantumStore.getState()
+    const { bloch, time, isPlaying } = useQuantumStore.getState()
     _target.set(bloch.x, bloch.z, bloch.y)
 
-    if (!initialized.current) {
+    const jumped = Math.abs(time - lastTime.current) > 0.02
+    lastTime.current = time
+
+    if (!initialized.current || (!isPlaying && jumped)) {
       _displayed.copy(_target)
       initialized.current = true
-    } else {
+    } else if (isPlaying) {
       const t = 1 - Math.exp(-SMOOTH_RATE * delta)
       _displayed.lerp(_target, t)
     }
@@ -243,13 +247,13 @@ function StateVector() {
     const len = _displayed.length()
     const visible = len > 1e-6
     const pulse = isPlaying ? 1 : 0
-    const time = state.clock.elapsedTime
+    const clock = state.clock.elapsedTime
 
-    vectorMaterial.uniforms.uTime.value = time
+    vectorMaterial.uniforms.uTime.value = clock
     vectorMaterial.uniforms.uPulse.value = pulse
-    tipMaterial.uniforms.uTime.value = time
+    tipMaterial.uniforms.uTime.value = clock
     tipMaterial.uniforms.uPulse.value = pulse
-    tipGlowMaterial.uniforms.uTime.value = time
+    tipGlowMaterial.uniforms.uTime.value = clock
     tipGlowMaterial.uniforms.uPulse.value = pulse
 
     if (rootRef.current) rootRef.current.visible = visible
@@ -275,7 +279,7 @@ function StateVector() {
     }
     if (tipGlowRef.current) {
       tipGlowRef.current.position.copy(_displayed)
-      const glowScale = 1 + pulse * 0.12 * Math.sin(time * 5.5)
+      const glowScale = 1 + pulse * 0.12 * Math.sin(clock * 5.5)
       tipGlowRef.current.scale.setScalar(glowScale)
     }
   })
@@ -519,8 +523,18 @@ function BlochScene() {
     const pulse = isPlaying ? 1 : 0
 
     _target.set(bloch.x, bloch.z, bloch.y)
-    const t = 1 - Math.exp(-SMOOTH_RATE * delta)
-    smoothTrail.current.lerp(_target, t)
+
+    const jumped = Math.abs(time - lastTime.current) > 0.02
+    lastTime.current = time
+
+    if (isPlaying) {
+      const t = 1 - Math.exp(-SMOOTH_RATE * delta)
+      smoothTrail.current.lerp(_target, t)
+    } else if (jumped) {
+      trailPoints.current = []
+      trailMesh.geometry.setDrawRange(0, 0)
+      smoothTrail.current.copy(_target)
+    }
 
     wireframeMaterial.uniforms.uTime.value = clock
     wireframeMaterial.uniforms.uPulse.value = pulse
@@ -532,13 +546,6 @@ function BlochScene() {
     const trailMat = trailMesh.material as THREE.ShaderMaterial
     trailMat.uniforms.uTime.value = clock
     trailMat.uniforms.uPulse.value = pulse
-
-    if (!isPlaying && Math.abs(time - lastTime.current) > 0.02) {
-      trailPoints.current = []
-      trailMesh.geometry.setDrawRange(0, 0)
-      smoothTrail.current.copy(_target)
-    }
-    lastTime.current = time
 
     if (isPlaying) {
       trailPoints.current.push(smoothTrail.current.clone())
