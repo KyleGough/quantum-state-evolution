@@ -2,7 +2,7 @@
 
 Interactive single-qubit visualiser: tune a Hamiltonian, pick $|\psi(0)\rangle$, and watch Schrödinger evolution on the Bloch sphere.
 
-**[Open Qubit Evolution](https://kylegough.github.io/quantum-state-evolution/)**
+**[Open Qubit Evolution](https://kylegough.github.io/qubit-evolution/)**
 
 <img width="1630" height="1285" alt="Qubit Evolution: Bloch sphere, Hamiltonian controls, and Dirac notation" src="https://github.com/user-attachments/assets/7db3832d-299f-45c8-89b0-ec2be358bf7d" />
 
