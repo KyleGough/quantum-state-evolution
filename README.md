@@ -8,7 +8,7 @@ Interactive single-qubit visualiser: tune a Hamiltonian, pick $|\psi(0)\rangle$,
 
 ## Hamiltonian
 
-The Hamiltonian, $H$ is the energy operator. For a single qubit it is a $2\times 2$ Hermitian matrix which has real eigenvalues and the propagator $e^{-iHt}$ is unitary. Any such $H$ is a real linear combination of the Pauli matrices:
+The Hamiltonian, $H$ is the energy operator. For a single qubit it is a $2\times 2$ Hermitian matrix, and formed by a real linear combination of the Pauli matrices:
 
 $$
 \sigma_x = \begin{bmatrix} 0 & 1 \cr 1 & 0 \end{bmatrix},\quad
