@@ -1001,15 +1001,57 @@ input[type='range']:active::-moz-range-thumb {
 }
 
 @media (max-width: 1200px) {
+  html,
+  body,
+  #root {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .app {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .app-body {
+    flex: 1 0 auto;
+    height: auto;
+  }
+
   .app-main {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(360px, 1fr) auto;
+    grid-template-rows: auto auto;
+    height: auto;
+  }
+
+  .viz-column {
+    padding-inline: 0.5rem;
+  }
+
+  .bloch-sphere-wrap,
+  .bloch-sphere {
+    flex: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .bloch-sphere {
+    position: relative;
+    aspect-ratio: 1;
+  }
+
+  .bloch-sphere > div {
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .sidebar {
     border-left: none;
     border-top: 1px solid var(--border);
-    max-height: 45vh;
+    max-height: none;
+    overflow-y: visible;
   }
 
   .playback-bar {
