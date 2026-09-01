@@ -246,15 +246,11 @@ function appendTrailPoint(points: THREE.Vector3[], next: THREE.Vector3) {
   }
 }
 
-const COORDINATE_AXES: {
-  blochDir: [number, number, number]
-  label: string
-  labelBloch: [number, number, number]
-}[] = [
-    { blochDir: [1, 0, 0], label: 'x', labelBloch: [1.34, 0, -0.16] },
-    { blochDir: [0, 1, 0], label: 'y', labelBloch: [0, 1.34, 0.1] },
-    { blochDir: [0, 0, 1], label: 'z', labelBloch: [0.16, 0, 1.3] },
-  ]
+const COORDINATE_AXES: [number, number, number][] = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+]
 
 function blochToThree(x: number, y: number, z: number): THREE.Vector3 {
   return new THREE.Vector3(x, z, y)
@@ -562,44 +558,30 @@ function StateVector({
 
 function CoordinateAxis({
   blochDir,
-  label,
-  labelBloch,
   material,
 }: {
   blochDir: [number, number, number]
-  label: string
-  labelBloch: [number, number, number]
   material: THREE.Material
 }) {
-  const { quaternion, labelPos } = useMemo(() => {
+  const quaternion = useMemo(() => {
     const dir = blochToThree(...blochDir).normalize()
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(_yAxis, dir)
-    const p = blochToThree(...labelBloch)
-    return { quaternion, labelPos: [p.x, p.y, p.z] as [number, number, number] }
-  }, [blochDir, labelBloch])
+    return new THREE.Quaternion().setFromUnitVectors(_yAxis, dir)
+  }, [blochDir])
 
   const fwdLen = AXIS_LEN - AXIS_HEAD_LENGTH * 0.55
 
   return (
-    <>
-      <group quaternion={quaternion}>
-        <mesh material={material} position={[0, fwdLen / 2, 0]} scale={[1, fwdLen, 1]} renderOrder={1}>
-          <cylinderGeometry args={[AXIS_SHAFT_WIDTH, AXIS_SHAFT_WIDTH, 1, 8]} />
-        </mesh>
-        <mesh material={material} position={[0, -AXIS_LEN / 2, 0]} scale={[1, AXIS_LEN, 1]} renderOrder={1}>
-          <cylinderGeometry args={[AXIS_SHAFT_WIDTH, AXIS_SHAFT_WIDTH, 1, 8]} />
-        </mesh>
-        <mesh material={material} position={[0, fwdLen + AXIS_HEAD_LENGTH * 0.45, 0]} renderOrder={1}>
-          <coneGeometry args={[AXIS_HEAD_WIDTH, AXIS_HEAD_LENGTH, 8]} />
-        </mesh>
-      </group>
-      <MathLabel
-        position={labelPos}
-        math={label}
-        distanceFactor={10}
-        className="bloch-math-label bloch-axis-label"
-      />
-    </>
+    <group quaternion={quaternion}>
+      <mesh material={material} position={[0, fwdLen / 2, 0]} scale={[1, fwdLen, 1]} renderOrder={1}>
+        <cylinderGeometry args={[AXIS_SHAFT_WIDTH, AXIS_SHAFT_WIDTH, 1, 8]} />
+      </mesh>
+      <mesh material={material} position={[0, -AXIS_LEN / 2, 0]} scale={[1, AXIS_LEN, 1]} renderOrder={1}>
+        <cylinderGeometry args={[AXIS_SHAFT_WIDTH, AXIS_SHAFT_WIDTH, 1, 8]} />
+      </mesh>
+      <mesh material={material} position={[0, fwdLen + AXIS_HEAD_LENGTH * 0.45, 0]} renderOrder={1}>
+        <coneGeometry args={[AXIS_HEAD_WIDTH, AXIS_HEAD_LENGTH, 8]} />
+      </mesh>
+    </group>
   )
 }
 
@@ -617,8 +599,8 @@ function CoordinateAxes() {
 
   return (
     <>
-      {COORDINATE_AXES.map((axis) => (
-        <CoordinateAxis key={axis.label} material={material} {...axis} />
+      {COORDINATE_AXES.map((blochDir) => (
+        <CoordinateAxis key={blochDir.join(',')} blochDir={blochDir} material={material} />
       ))}
     </>
   )

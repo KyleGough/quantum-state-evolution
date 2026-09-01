@@ -758,11 +758,6 @@ input[type='range']:active::-moz-range-thumb {
   color: var(--state-ket);
 }
 
-.bloch-axis-label .katex {
-  font-size: 0.52rem;
-  color: oklch(0.36 0.02 50);
-}
-
 .slider-label .katex {
   font-size: 0.8125rem;
 }
