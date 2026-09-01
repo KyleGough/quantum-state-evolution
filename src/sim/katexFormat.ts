@@ -85,14 +85,28 @@ export function formatAmplitudeKatex(c: Complex): string {
   return `\\mathtt{${C.formatFixedSimple(c)}}`
 }
 
-export function energyEigenvectorKatex(alpha: Complex, beta: Complex, named?: string | null): string {
-  const vector = `\\begin{pmatrix} ${formatAmplitudeKatex(alpha)} \\\\ ${formatAmplitudeKatex(beta)} \\end{pmatrix}`
-  if (named) return `${ket('E_+')} = ${named} = ${vector}`
-  return `${ket('E_+')} = ${vector}`
+export type EnergyLevel = 'plus' | 'minus'
+
+function energyKet(which: EnergyLevel): string {
+  return ket(which === 'plus' ? 'E_+' : 'E_-')
 }
 
-export function energyEigenvalueKatex(energy: number, omegaR: number): string {
-  return String.raw`E_+ = +\frac{\omega_R}{2} = ${energy.toFixed(2)},\quad \omega_R = ${omegaR.toFixed(2)}`
+export function energyEigenvectorKatex(
+  alpha: Complex,
+  beta: Complex,
+  named?: string | null,
+  which: EnergyLevel = 'plus',
+): string {
+  const vector = `\\begin{pmatrix} ${formatAmplitudeKatex(alpha)} \\\\ ${formatAmplitudeKatex(beta)} \\end{pmatrix}`
+  const label = energyKet(which)
+  if (named) return `${label} = ${named} = ${vector}`
+  return `${label} = ${vector}`
+}
+
+export function energyEigenvalueKatex(energy: number, omegaR: number, which: EnergyLevel = 'plus'): string {
+  const label = which === 'plus' ? 'E_+' : 'E_-'
+  const sign = which === 'plus' ? '+' : '-'
+  return String.raw`${label} = ${sign}\frac{\omega_R}{2} = ${energy.toFixed(2)},\quad \omega_R = ${omegaR.toFixed(2)}`
 }
 
 export function namedKetFromBloch(x: number, y: number, z: number): string | null {

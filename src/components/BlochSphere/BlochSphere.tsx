@@ -5,7 +5,7 @@ import { OrbitControls, useCursor } from '@react-three/drei'
 import * as THREE from 'three'
 import { useQuantumStore } from '../../store/useQuantumStore'
 import { ket, stateVectorKatex } from '../../sim/katexFormat'
-import { plusEnergyEigenstate } from '../../sim/hamiltonian'
+import { minusEnergyEigenstate, plusEnergyEigenstate } from '../../sim/hamiltonian'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { KatexBlock } from '../Katex'
 import { EnergyEigenvectorHint } from '../SectionHints'
@@ -48,9 +48,10 @@ const _yAxis = new THREE.Vector3(0, 1, 0)
 const _projected = new THREE.Vector3()
 const _energyPos = new THREE.Vector3()
 const stateTipScreen = { x: 0, y: 0 }
-const energyTipScreen = { x: 0, y: 0 }
+const energyPlusTipScreen = { x: 0, y: 0 }
+const energyMinusTipScreen = { x: 0, y: 0 }
 
-type BlochMarker = 'state' | 'energy'
+type BlochMarker = 'state' | 'energyPlus' | 'energyMinus'
 
 function positionTipPopover(panel: HTMLDivElement, x: number, y: number) {
   const inner = panel.firstElementChild as HTMLElement | null
@@ -161,19 +162,28 @@ function BlochTipStatePopover({ panelRef }: { panelRef: RefObject<HTMLDivElement
   )
 }
 
-function BlochTipEnergyPopover({ panelRef }: { panelRef: RefObject<HTMLDivElement> }) {
+function BlochTipEnergyPopover({
+  panelRef,
+  which,
+  screen,
+}: {
+  panelRef: RefObject<HTMLDivElement>
+  which: 'plus' | 'minus'
+  screen: { x: number; y: number }
+}) {
   const hamiltonian = useQuantumStore((s) => s.hamiltonian)
-  const eigen = plusEnergyEigenstate(hamiltonian)
+  const eigen = which === 'plus' ? plusEnergyEigenstate(hamiltonian) : minusEnergyEigenstate(hamiltonian)
   if (!eigen) return null
 
   return (
-    <BlochMarkerPopover panelRef={panelRef} screen={energyTipScreen} className="bloch-energy-popover">
+    <BlochMarkerPopover panelRef={panelRef} screen={screen} className="bloch-energy-popover">
       <EnergyEigenvectorHint
         alpha={eigen.psi[0]}
         beta={eigen.psi[1]}
         bloch={eigen.bloch}
         energy={eigen.energy}
         omegaR={eigen.omegaR}
+        which={which}
       />
     </BlochMarkerPopover>
   )
@@ -615,10 +625,14 @@ function CoordinateAxes() {
 }
 
 function EnergyEigenstateTip({
+  sign,
+  screen,
   hovered,
   onHover,
   panelRef,
 }: {
+  sign: 1 | -1
+  screen: { x: number; y: number }
   hovered: boolean
   onHover: (hovered: boolean) => void
   panelRef: RefObject<HTMLDivElement>
@@ -657,9 +671,9 @@ function EnergyEigenstateTip({
     }
 
     _energyPos.set(
-      hamiltonian.OmegaX / len,
-      hamiltonian.omega / len,
-      hamiltonian.OmegaY / len,
+      (sign * hamiltonian.OmegaX) / len,
+      (sign * hamiltonian.omega) / len,
+      (sign * hamiltonian.OmegaY) / len,
     )
 
     if (tipRef.current) {
@@ -677,9 +691,9 @@ function EnergyEigenstateTip({
       hitRef.current.position.copy(_energyPos)
     }
 
-    projectWorldToScreen(_energyPos, state.camera, state.gl.domElement, energyTipScreen)
+    projectWorldToScreen(_energyPos, state.camera, state.gl.domElement, screen)
     const panel = panelRef.current
-    if (panel) positionTipPopover(panel, energyTipScreen.x, energyTipScreen.y)
+    if (panel) positionTipPopover(panel, screen.x, screen.y)
   })
 
   return (
@@ -783,13 +797,15 @@ function BlochScene({
   isPlaying,
   onMarkerHover,
   statePanelRef,
-  energyPanelRef,
+  energyPlusPanelRef,
+  energyMinusPanelRef,
 }: {
   hoveredMarker: BlochMarker | null
   isPlaying: boolean
   onMarkerHover: (id: BlochMarker, hovered: boolean) => void
   statePanelRef: RefObject<HTMLDivElement>
-  energyPanelRef: RefObject<HTMLDivElement>
+  energyPlusPanelRef: RefObject<HTMLDivElement>
+  energyMinusPanelRef: RefObject<HTMLDivElement>
 }) {
   const trailPoints = useRef<THREE.Vector3[]>([])
   const trailMesh = useMemo(() => createTrailRibbon(), [])
@@ -907,9 +923,18 @@ function BlochScene({
         panelRef={statePanelRef}
       />
       <EnergyEigenstateTip
-        hovered={hoveredMarker === 'energy'}
-        onHover={(hovered) => onMarkerHover('energy', hovered)}
-        panelRef={energyPanelRef}
+        sign={1}
+        screen={energyPlusTipScreen}
+        hovered={hoveredMarker === 'energyPlus'}
+        onHover={(hovered) => onMarkerHover('energyPlus', hovered)}
+        panelRef={energyPlusPanelRef}
+      />
+      <EnergyEigenstateTip
+        sign={-1}
+        screen={energyMinusTipScreen}
+        hovered={hoveredMarker === 'energyMinus'}
+        onHover={(hovered) => onMarkerHover('energyMinus', hovered)}
+        panelRef={energyMinusPanelRef}
       />
       <OrbitControls enablePan={false} minDistance={2.4} maxDistance={4.5} />
     </>
@@ -920,7 +945,8 @@ export function BlochSphere() {
   const isPlaying = useQuantumStore((s) => s.isPlaying)
   const [hoveredMarker, setHoveredMarker] = useState<BlochMarker | null>(null)
   const statePanelRef = useRef<HTMLDivElement>(null)
-  const energyPanelRef = useRef<HTMLDivElement>(null)
+  const energyPlusPanelRef = useRef<HTMLDivElement>(null)
+  const energyMinusPanelRef = useRef<HTMLDivElement>(null)
 
   const onMarkerHover = (id: BlochMarker, hovered: boolean) => {
     setHoveredMarker((current) => {
@@ -949,14 +975,20 @@ export function BlochSphere() {
             isPlaying={isPlaying}
             onMarkerHover={onMarkerHover}
             statePanelRef={statePanelRef}
-            energyPanelRef={energyPanelRef}
+            energyPlusPanelRef={energyPlusPanelRef}
+            energyMinusPanelRef={energyMinusPanelRef}
           />
         </Canvas>
       </div>
       {hoveredMarker === 'state' && !isPlaying && (
         <BlochTipStatePopover panelRef={statePanelRef} />
       )}
-      {hoveredMarker === 'energy' && <BlochTipEnergyPopover panelRef={energyPanelRef} />}
+      {hoveredMarker === 'energyPlus' && (
+        <BlochTipEnergyPopover panelRef={energyPlusPanelRef} which="plus" screen={energyPlusTipScreen} />
+      )}
+      {hoveredMarker === 'energyMinus' && (
+        <BlochTipEnergyPopover panelRef={energyMinusPanelRef} which="minus" screen={energyMinusTipScreen} />
+      )}
     </div>
   )
 }

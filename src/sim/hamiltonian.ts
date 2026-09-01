@@ -56,7 +56,7 @@ export function blochPeriod(params: HamiltonianParams): number | null {
   return (2 * Math.PI) / rate
 }
 
-export interface PlusEnergyEigenstate {
+export interface EnergyEigenstate {
   psi: StateVector
   energy: number
   omegaR: number
@@ -79,7 +79,7 @@ function gaugeRealNonneg(psi: StateVector): StateVector {
  * Higher-energy eigenstate of H = (1/2) Ω⃗ · σ, Bloch vector along +Ω⃗.
  * Returns null when H = 0 (no preferred axis).
  */
-export function plusEnergyEigenstate(params: HamiltonianParams): PlusEnergyEigenstate | null {
+export function plusEnergyEigenstate(params: HamiltonianParams): EnergyEigenstate | null {
   const { omega, OmegaX, OmegaY } = params
   const omegaR = Math.hypot(omega, OmegaX, OmegaY)
   if (omegaR < 1e-12) return null
@@ -99,6 +99,33 @@ export function plusEnergyEigenstate(params: HamiltonianParams): PlusEnergyEigen
       x: OmegaX / omegaR,
       y: OmegaY / omegaR,
       z: omega / omegaR,
+    },
+  }
+}
+
+/**
+ * Lower-energy eigenstate: orthogonal to |E₊⟩, Bloch vector along −Ω⃗.
+ */
+export function minusEnergyEigenstate(params: HamiltonianParams): EnergyEigenstate | null {
+  const plus = plusEnergyEigenstate(params)
+  if (!plus) return null
+
+  const [alpha, beta] = plus.psi
+  const psi = gaugeRealNonneg(
+    State.normalize([
+      { re: -beta.re, im: beta.im },
+      { re: alpha.re, im: -alpha.im },
+    ]),
+  )
+
+  return {
+    psi,
+    energy: -plus.energy,
+    omegaR: plus.omegaR,
+    bloch: {
+      x: -plus.bloch.x,
+      y: -plus.bloch.y,
+      z: -plus.bloch.z,
     },
   }
 }
