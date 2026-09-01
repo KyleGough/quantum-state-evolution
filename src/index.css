@@ -1000,7 +1000,7 @@ input[type='range']:active::-moz-range-thumb {
   font-size: 1em;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .app-main {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(360px, 1fr) auto;
