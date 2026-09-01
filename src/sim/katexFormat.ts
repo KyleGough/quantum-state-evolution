@@ -54,8 +54,32 @@ export function hamiltonianKatex(params: HamiltonianParams): string {
   return `H = ${body}`
 }
 
+const EQUATORIAL_COLUMNS: Record<string, string> = {
+  [ket('{+}')]: '1 \\\\ 1',
+  [ket('{-}')]: '1 \\\\ -1',
+  [ket('{+i}')]: '1 \\\\ i',
+  [ket('{-i}')]: '1 \\\\ -i',
+}
+
+/** Textbook column for |+⟩, |−⟩, |+i⟩, |−i⟩ with 1/√2 factored out of the vector. */
+function equatorialBasisColumnKatex(named: string): string | null {
+  const body = EQUATORIAL_COLUMNS[named]
+  if (body === undefined) return null
+  return `\\frac{1}{\\sqrt{2}}\\begin{pmatrix} ${body} \\end{pmatrix}`
+}
+
+function namedKetFromAmplitudes(alpha: Complex, beta: Complex): string | null {
+  const ab = C.mul(C.conj(alpha), beta)
+  return namedKetFromBloch(2 * ab.re, 2 * ab.im, C.abs2(alpha) - C.abs2(beta))
+}
+
 export function stateVectorKatex(alpha: Complex, beta: Complex, simple: boolean = false): string {
-  return `${ket(PSI)} = \\begin{pmatrix} ${formatComplexKatex(alpha, simple)} \\\\ ${formatComplexKatex(beta, simple)} \\end{pmatrix}`
+  const named = simple ? namedKetFromAmplitudes(alpha, beta) : null
+  const equatorial = named ? equatorialBasisColumnKatex(named) : null
+  const vector =
+    equatorial ??
+    `\\begin{pmatrix} ${formatComplexKatex(alpha, simple)} \\\\ ${formatComplexKatex(beta, simple)} \\end{pmatrix}`
+  return `${ket(PSI)} = ${vector}`
 }
 
 const AMP_EPS = 0.03
@@ -97,7 +121,10 @@ export function energyEigenvectorKatex(
   named?: string | null,
   which: EnergyLevel = 'plus',
 ): string {
-  const vector = `\\begin{pmatrix} ${formatAmplitudeKatex(alpha)} \\\\ ${formatAmplitudeKatex(beta)} \\end{pmatrix}`
+  const equatorial = named ? equatorialBasisColumnKatex(named) : null
+  const vector =
+    equatorial ??
+    `\\begin{pmatrix} ${formatAmplitudeKatex(alpha)} \\\\ ${formatAmplitudeKatex(beta)} \\end{pmatrix}`
   const label = energyKet(which)
   if (named) return `${label} = ${named} = ${vector}`
   return `${label} = ${vector}`
