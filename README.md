@@ -4,7 +4,7 @@ Interactive single-qubit visualiser: tune a Hamiltonian, pick $|\psi(0)\rangle$,
 
 **[Open Qubit Evolution](https://kylegough.github.io/qubit-evolution/)**
 
-<img width="1630" height="1285" alt="Qubit Evolution: Bloch sphere, Hamiltonian controls, and Dirac notation" src="https://github.com/user-attachments/assets/7db3832d-299f-45c8-89b0-ec2be358bf7d" />
+<img width="1617" height="1283" alt="Qubit Evolution: Bloch sphere, Hamiltonian controls, and Dirac notation" src="https://github.com/user-attachments/assets/e21d40fa-fb97-4f6d-a7b7-06ad79839de5" />
 
 ## Hamiltonian
 
