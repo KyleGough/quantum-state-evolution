@@ -18,7 +18,7 @@ export default function App() {
   return (
     <div className="app app-enter">
       <div className="app-title app-enter-item">
-        <h1>Quantum State Evolution</h1>
+        <h1>Qubit Evolution</h1>
         <p className="subtitle">Single-qubit Schrödinger evolution under a tunable Hamiltonian</p>
         <div className="app-byline">
           <a

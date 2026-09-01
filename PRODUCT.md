@@ -1,8 +1,8 @@
-# Product
+# Qubit Evolution
 
 ## Register
 
-product
+product: Qubit Evolution
 
 ## Users
 
@@ -10,7 +10,7 @@ Students, instructors, physicists with a textbook or lecture notes. Well-lit stu
 
 ## Product Purpose
 
-Interactive computational notebook for single-qubit Schrödinger evolution: tune H, pick |ψ(0)⟩, watch the state precess on the Bloch sphere, read the same state as a ket. Success: maths and picture stay in lockstep; UI stays out of the way of the physics.
+Qubit Evolution is an interactive computational notebook for single-qubit Schrödinger evolution: tune H, pick |ψ(0)⟩, watch the state precess on the Bloch sphere, read the same state as a ket. Success: maths and picture stay in lockstep; UI stays out of the way of the physics.
 
 ## Brand Personality
 
