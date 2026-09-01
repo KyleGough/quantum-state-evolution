@@ -14,6 +14,7 @@ import {
 
 const TRAIL_LENGTH = 160
 const TRAIL_WIDTH = 0.012
+const MAX_TRAIL_STEP = 0.06
 const ARROW_HEAD_LENGTH = 0.018
 const ARROW_HEAD_WIDTH = 0.011
 const ARROW_SHAFT_WIDTH = 0.0045
@@ -34,8 +35,67 @@ const _target = new THREE.Vector3()
 const _tangent = new THREE.Vector3()
 const _side = new THREE.Vector3()
 const _toCam = new THREE.Vector3()
+const _slerpAxis = new THREE.Vector3()
+const _slerpQ = new THREE.Quaternion()
 const _upZ = new THREE.Vector3(0, 0, 1)
 const _yAxis = new THREE.Vector3(0, 1, 0)
+
+/** Unit Bloch vector in Three.js coords. Pure states live on the sphere. */
+function blochTarget(bloch: { x: number; y: number; z: number }, out: THREE.Vector3) {
+  out.set(bloch.x, bloch.z, bloch.y)
+  const len = out.length()
+  if (len > 1e-8) out.multiplyScalar(1 / len)
+  return out
+}
+
+/** Spherical interpolation of unit vectors. Linear lerp would cut a chord inside the sphere. */
+function slerpUnit(out: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, t: number) {
+  if (a.lengthSq() < 1e-12) {
+    out.copy(b)
+    return out
+  }
+  if (b.lengthSq() < 1e-12) {
+    out.copy(a)
+    return out
+  }
+  const dot = THREE.MathUtils.clamp(a.dot(b), -1, 1)
+  if (dot > 0.9995) {
+    out.copy(a).lerp(b, t)
+    const len = out.length()
+    if (len > 1e-8) out.multiplyScalar(1 / len)
+    return out
+  }
+  if (dot < -0.9995) {
+    _slerpAxis.set(-a.y, a.x, 0)
+    if (_slerpAxis.lengthSq() < 1e-12) _slerpAxis.set(0, -a.z, a.y)
+    _slerpQ.setFromAxisAngle(_slerpAxis.normalize(), Math.PI * t)
+    out.copy(a).applyQuaternion(_slerpQ)
+    return out
+  }
+  const theta = Math.acos(dot)
+  const sinTheta = Math.sin(theta)
+  out.copy(a).multiplyScalar(Math.sin((1 - t) * theta) / sinTheta)
+  out.addScaledVector(b, Math.sin(t * theta) / sinTheta)
+  return out
+}
+
+function appendTrailPoint(points: THREE.Vector3[], next: THREE.Vector3) {
+  const last = points[points.length - 1]
+  if (!last) {
+    points.push(next.clone())
+    return
+  }
+  const angle = Math.acos(THREE.MathUtils.clamp(last.dot(next), -1, 1))
+  const steps = Math.max(1, Math.ceil(angle / MAX_TRAIL_STEP))
+  for (let s = 1; s <= steps; s++) {
+    const p = new THREE.Vector3()
+    slerpUnit(p, last, next, s / steps)
+    points.push(p)
+  }
+  if (points.length > TRAIL_LENGTH) {
+    points.splice(0, points.length - TRAIL_LENGTH)
+  }
+}
 
 const COORDINATE_AXES: {
   blochDir: [number, number, number]
@@ -233,7 +293,7 @@ function StateVector() {
 
   useFrame((state, delta) => {
     const { bloch, time, isPlaying, initialStateId } = useQuantumStore.getState()
-    _target.set(bloch.x, bloch.z, bloch.y)
+    blochTarget(bloch, _target)
 
     const jumped = Math.abs(time - lastTime.current) > 0.02
     lastTime.current = time
@@ -249,7 +309,7 @@ function StateVector() {
       initialized.current = true
     } else if (isPlaying || settling.current) {
       const t = 1 - Math.exp(-SMOOTH_RATE * delta)
-      _displayed.lerp(_target, t)
+      slerpUnit(_displayed, _displayed, _target, t)
       if (settling.current && _displayed.distanceToSquared(_target) < 1e-8) {
         _displayed.copy(_target)
         settling.current = false
@@ -275,8 +335,8 @@ function StateVector() {
     if (tipGlowRef.current) tipGlowRef.current.visible = visible
     if (!visible) return
 
-    _dir.copy(_displayed).normalize()
-    const shaftLen = Math.max(0.02, len - ARROW_HEAD_LENGTH * 0.75)
+    _dir.copy(_displayed)
+    const shaftLen = Math.max(0.02, 1 - ARROW_HEAD_LENGTH * 0.75)
 
     if (rootRef.current) {
       rootRef.current.quaternion.setFromUnitVectors(_yAxis, _dir)
@@ -537,7 +597,7 @@ function BlochScene() {
     const clock = state.clock.elapsedTime
     const pulse = isPlaying ? 1 : 0
 
-    _target.set(bloch.x, bloch.z, bloch.y)
+    blochTarget(bloch, _target)
 
     const jumped = Math.abs(time - lastTime.current) > 0.02
     lastTime.current = time
@@ -545,8 +605,12 @@ function BlochScene() {
     lastInitialId.current = initialStateId
 
     if (isPlaying) {
-      const t = 1 - Math.exp(-SMOOTH_RATE * delta)
-      smoothTrail.current.lerp(_target, t)
+      if (smoothTrail.current.lengthSq() < 1e-12) {
+        smoothTrail.current.copy(_target)
+      } else {
+        const t = 1 - Math.exp(-SMOOTH_RATE * delta)
+        slerpUnit(smoothTrail.current, smoothTrail.current, _target, t)
+      }
     } else if (jumped || initialChanged) {
       trailPoints.current = []
       trailMesh.geometry.setDrawRange(0, 0)
@@ -565,10 +629,7 @@ function BlochScene() {
     trailMat.uniforms.uPulse.value = pulse
 
     if (isPlaying) {
-      trailPoints.current.push(smoothTrail.current.clone())
-      if (trailPoints.current.length > TRAIL_LENGTH) {
-        trailPoints.current.shift()
-      }
+      appendTrailPoint(trailPoints.current, smoothTrail.current)
     }
 
     writeTrailRibbon(trailMesh, trailPoints.current, state.camera.position)
