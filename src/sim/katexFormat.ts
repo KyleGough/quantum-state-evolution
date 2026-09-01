@@ -17,8 +17,8 @@ export function braket(content: string): string {
   return `${LANGLE}${content}${RANGLE}`
 }
 
-function formatComplexKatex(c: Complex): string {
-  return `\\mathtt{${C.formatFixed(c)}}`
+function formatComplexKatex(c: Complex, simple: boolean = false): string {
+  return simple ? `\\mathtt{${C.formatFixedSimple(c)}}` : `\\mathtt{${C.formatFixed(c)}}`
 }
 
 export function rabiReadoutKatex(omegaR: number, period: number | null): string {
@@ -54,8 +54,8 @@ export function hamiltonianKatex(params: HamiltonianParams): string {
   return `H = ${body}`
 }
 
-export function stateVectorKatex(alpha: Complex, beta: Complex): string {
-  return `${ket(PSI)} = \\begin{pmatrix} ${formatComplexKatex(alpha)} \\\\ ${formatComplexKatex(beta)} \\end{pmatrix}`
+export function stateVectorKatex(alpha: Complex, beta: Complex, simple: boolean = false): string {
+  return `${ket(PSI)} = \\begin{pmatrix} ${formatComplexKatex(alpha, simple)} \\\\ ${formatComplexKatex(beta, simple)} \\end{pmatrix}`
 }
 
 export function blochVectorKatex(x: number, y: number, z: number): string {

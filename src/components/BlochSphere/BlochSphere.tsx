@@ -1,9 +1,12 @@
-import { useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, useCursor } from '@react-three/drei'
 import * as THREE from 'three'
 import { useQuantumStore } from '../../store/useQuantumStore'
-import { ket } from '../../sim/katexFormat'
+import { ket, stateVectorKatex } from '../../sim/katexFormat'
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
+import { KatexBlock } from '../Katex'
 import { MathLabel } from './MathLabel'
 import {
   createStateVectorMaterial,
@@ -20,6 +23,10 @@ const ARROW_HEAD_WIDTH = 0.011
 const ARROW_SHAFT_WIDTH = 0.0045
 const TIP_RADIUS = 0.014
 const TIP_GLOW_RADIUS = 0.038
+const TIP_HIT_RADIUS = 0.11
+const TIP_POPOVER_GAP_PX = 16
+const VIEW_MARGIN_PX = 8
+const POPOVER_DURATION_MS = 400
 const AXIS_LEN = 1.02
 const AXIS_HEAD_LENGTH = 0.042
 const AXIS_HEAD_WIDTH = 0.016
@@ -39,6 +46,95 @@ const _slerpAxis = new THREE.Vector3()
 const _slerpQ = new THREE.Quaternion()
 const _upZ = new THREE.Vector3(0, 0, 1)
 const _yAxis = new THREE.Vector3(0, 1, 0)
+const _projected = new THREE.Vector3()
+const tipScreen = { x: 0, y: 0 }
+
+function positionTipPopover(panel: HTMLDivElement, x: number, y: number) {
+  const inner = panel.firstElementChild as HTMLElement | null
+  const height = inner?.offsetHeight ?? panel.offsetHeight
+  const width = panel.offsetWidth
+  if (width < 1 || height < 1) return
+
+  let left = x - width / 2
+  const maxLeft = window.innerWidth - width - VIEW_MARGIN_PX
+  if (maxLeft <= VIEW_MARGIN_PX) {
+    left = VIEW_MARGIN_PX
+  } else {
+    left = Math.min(Math.max(left, VIEW_MARGIN_PX), maxLeft)
+  }
+
+  let top = y - height - TIP_POPOVER_GAP_PX
+  if (top < VIEW_MARGIN_PX) {
+    top = y + TIP_POPOVER_GAP_PX
+  }
+  const maxTop = window.innerHeight - height - VIEW_MARGIN_PX
+  if (maxTop <= VIEW_MARGIN_PX) {
+    top = VIEW_MARGIN_PX
+  } else {
+    top = Math.min(Math.max(top, VIEW_MARGIN_PX), maxTop)
+  }
+
+  panel.style.top = `${top}px`
+  panel.style.left = `${left}px`
+}
+
+function projectTipToScreen(camera: THREE.Camera, canvas: HTMLCanvasElement) {
+  _projected.copy(_displayed).project(camera)
+  const rect = canvas.getBoundingClientRect()
+  tipScreen.x = rect.left + (_projected.x * 0.5 + 0.5) * rect.width
+  tipScreen.y = rect.top + (-_projected.y * 0.5 + 0.5) * rect.height
+}
+
+function BlochTipStatePopover({ panelRef }: { panelRef: RefObject<HTMLDivElement> }) {
+  const psi = useQuantumStore((s) => s.psi)
+  const reduceMotion = usePrefersReducedMotion()
+  const [shown, setShown] = useState(false)
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    if (panel) positionTipPopover(panel, tipScreen.x, tipScreen.y)
+  }, [panelRef, psi])
+
+  useLayoutEffect(() => {
+    if (reduceMotion) {
+      setShown(true)
+      return
+    }
+    const frame = requestAnimationFrame(() => setShown(true))
+    return () => cancelAnimationFrame(frame)
+  }, [reduceMotion])
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    const inner = panel?.firstElementChild
+    if (!panel || !inner) return
+
+    const observer = new ResizeObserver(() => {
+      positionTipPopover(panel, tipScreen.x, tipScreen.y)
+    })
+    observer.observe(inner)
+    return () => observer.disconnect()
+  }, [panelRef, psi])
+
+  return createPortal(
+    <div
+      ref={panelRef}
+      role="tooltip"
+      className="popover-panel bloch-tip-popover"
+      aria-hidden={!shown}
+      style={{
+        opacity: shown ? 1 : 0,
+        pointerEvents: 'none',
+        transition: reduceMotion ? 'none' : `opacity ${POPOVER_DURATION_MS}ms var(--ease)`,
+      }}
+    >
+      <div className="popover-panel-inner">
+        <KatexBlock math={stateVectorKatex(psi[0], psi[1], true)} />
+      </div>
+    </div>,
+    document.body,
+  )
+}
 
 /** Unit Bloch vector in Three.js coords. Pure states live on the sphere. */
 function blochTarget(bloch: { x: number; y: number; z: number }, out: THREE.Vector3) {
@@ -102,10 +198,10 @@ const COORDINATE_AXES: {
   label: string
   labelBloch: [number, number, number]
 }[] = [
-  { blochDir: [1, 0, 0], label: 'x', labelBloch: [1.34, 0, -0.16] },
-  { blochDir: [0, 1, 0], label: 'y', labelBloch: [0, 1.34, 0.1] },
-  { blochDir: [0, 0, 1], label: 'z', labelBloch: [0.16, 0, 1.3] },
-]
+    { blochDir: [1, 0, 0], label: 'x', labelBloch: [1.34, 0, -0.16] },
+    { blochDir: [0, 1, 0], label: 'y', labelBloch: [0, 1.34, 0.1] },
+    { blochDir: [0, 0, 1], label: 'z', labelBloch: [0.16, 0, 1.3] },
+  ]
 
 function blochToThree(x: number, y: number, z: number): THREE.Vector3 {
   return new THREE.Vector3(x, z, y)
@@ -276,12 +372,23 @@ function trailAge(index: number, count: number): number {
   return index / (count - 1)
 }
 
-function StateVector() {
+function StateVector({
+  tipHovered,
+  isPlaying,
+  onTipHover,
+  panelRef,
+}: {
+  tipHovered: boolean
+  isPlaying: boolean
+  onTipHover: (hovered: boolean) => void
+  panelRef: RefObject<HTMLDivElement>
+}) {
   const rootRef = useRef<THREE.Group>(null)
   const shaftRef = useRef<THREE.Mesh>(null)
   const headRef = useRef<THREE.Mesh>(null)
   const tipRef = useRef<THREE.Mesh>(null)
   const tipGlowRef = useRef<THREE.Mesh>(null)
+  const hitRef = useRef<THREE.Mesh>(null)
   const initialized = useRef(false)
   const lastTime = useRef(-1)
   const lastInitialId = useRef(useQuantumStore.getState().initialStateId)
@@ -291,8 +398,10 @@ function StateVector() {
   const tipMaterial = useMemo(() => createTipMaterial(), [])
   const tipGlowMaterial = useMemo(() => createTipGlowMaterial(), [])
 
+  useCursor(tipHovered && !isPlaying)
+
   useFrame((state, delta) => {
-    const { bloch, time, isPlaying, initialStateId } = useQuantumStore.getState()
+    const { bloch, time, isPlaying: playing, initialStateId } = useQuantumStore.getState()
     blochTarget(bloch, _target)
 
     const jumped = Math.abs(time - lastTime.current) > 0.02
@@ -302,12 +411,12 @@ function StateVector() {
       lastInitialId.current = initialStateId
       settling.current = true
     }
-    if (isPlaying) settling.current = false
+    if (playing) settling.current = false
 
     if (!initialized.current) {
       _displayed.copy(_target)
       initialized.current = true
-    } else if (isPlaying || settling.current) {
+    } else if (playing || settling.current) {
       const t = 1 - Math.exp(-SMOOTH_RATE * delta)
       slerpUnit(_displayed, _displayed, _target, t)
       if (settling.current && _displayed.distanceToSquared(_target) < 1e-8) {
@@ -320,7 +429,7 @@ function StateVector() {
 
     const len = _displayed.length()
     const visible = len > 1e-6
-    const pulse = isPlaying ? 1 : 0
+    const pulse = playing ? 1 : 0
     const clock = state.clock.elapsedTime
 
     vectorMaterial.uniforms.uTime.value = clock
@@ -333,6 +442,7 @@ function StateVector() {
     if (rootRef.current) rootRef.current.visible = visible
     if (tipRef.current) tipRef.current.visible = visible
     if (tipGlowRef.current) tipGlowRef.current.visible = visible
+    if (hitRef.current) hitRef.current.visible = visible
     if (!visible) return
 
     _dir.copy(_displayed)
@@ -356,6 +466,13 @@ function StateVector() {
       const glowScale = 1 + pulse * 0.12 * Math.sin(clock * 5.5)
       tipGlowRef.current.scale.setScalar(glowScale)
     }
+    if (hitRef.current) {
+      hitRef.current.position.copy(_displayed)
+    }
+
+    projectTipToScreen(state.camera, state.gl.domElement)
+    const panel = panelRef.current
+    if (panel) positionTipPopover(panel, tipScreen.x, tipScreen.y)
   })
 
   return (
@@ -373,6 +490,18 @@ function StateVector() {
       </mesh>
       <mesh ref={tipRef} material={tipMaterial} renderOrder={3}>
         <sphereGeometry args={[TIP_RADIUS, 24, 24]} />
+      </mesh>
+      <mesh
+        ref={hitRef}
+        renderOrder={4}
+        onPointerOver={(event) => {
+          event.stopPropagation()
+          onTipHover(true)
+        }}
+        onPointerOut={() => onTipHover(false)}
+      >
+        <sphereGeometry args={[TIP_HIT_RADIUS, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
       </mesh>
     </>
   )
@@ -562,7 +691,17 @@ function writeTrailRibbon(mesh: THREE.Mesh, points: THREE.Vector3[], cameraPos: 
   mesh.geometry.setDrawRange(0, (count - 1) * 6)
 }
 
-function BlochScene() {
+function BlochScene({
+  tipHovered,
+  isPlaying,
+  onTipHover,
+  panelRef,
+}: {
+  tipHovered: boolean
+  isPlaying: boolean
+  onTipHover: (hovered: boolean) => void
+  panelRef: RefObject<HTMLDivElement>
+}) {
   const trailPoints = useRef<THREE.Vector3[]>([])
   const trailMesh = useMemo(() => createTrailRibbon(), [])
   const lastTime = useRef(-1)
@@ -673,7 +812,12 @@ function BlochScene() {
       <CoordinateAxes />
       <RotationAxisCross />
       <primitive object={trailMesh} />
-      <StateVector />
+      <StateVector
+        tipHovered={tipHovered}
+        isPlaying={isPlaying}
+        onTipHover={onTipHover}
+        panelRef={panelRef}
+      />
       <OrbitControls enablePan={false} minDistance={2.4} maxDistance={4.5} />
     </>
   )
@@ -681,10 +825,15 @@ function BlochScene() {
 
 export function BlochSphere() {
   const isPlaying = useQuantumStore((s) => s.isPlaying)
+  const [tipHovered, setTipHovered] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   return (
     <div className={`bloch-sphere-wrap${isPlaying ? ' is-playing' : ''}`}>
-      <div className="bloch-sphere">
+      <div
+        className="bloch-sphere"
+        onPointerLeave={() => setTipHovered(false)}
+      >
         <Canvas
           camera={{ position: [2.6, 1.4, 2.6], fov: 42 }}
           gl={{
@@ -694,9 +843,15 @@ export function BlochSphere() {
             toneMappingExposure: 1.05,
           }}
         >
-          <BlochScene />
+          <BlochScene
+            tipHovered={tipHovered}
+            isPlaying={isPlaying}
+            onTipHover={setTipHovered}
+            panelRef={panelRef}
+          />
         </Canvas>
       </div>
+      {tipHovered && !isPlaying && <BlochTipStatePopover panelRef={panelRef} />}
     </div>
   )
 }

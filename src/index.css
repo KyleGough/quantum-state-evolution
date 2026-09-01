@@ -26,6 +26,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -33,40 +34,48 @@
 }
 
 @keyframes bg-drift {
+
   0%,
   100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
 }
 
 @keyframes playback-glow {
+
   0%,
   100% {
     text-shadow: 0 0 0 transparent;
   }
+
   50% {
     text-shadow: 0 0 12px oklch(0.55 0.16 45 / 0.35);
   }
 }
 
 @keyframes chart-now-pulse {
+
   0%,
   100% {
     stroke-opacity: 0.55;
   }
+
   50% {
     stroke-opacity: 1;
   }
 }
 
 @keyframes chart-dot-pulse {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.18);
   }
@@ -89,13 +98,11 @@ body {
   font-family: var(--font-sans);
   font-weight: 400;
   font-synthesis: none;
-  background: linear-gradient(
-    135deg,
-    var(--bg) 0%,
-    oklch(0.982 0.012 48) 35%,
-    oklch(0.988 0.006 54) 65%,
-    var(--bg) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--bg) 0%,
+      oklch(0.982 0.012 48) 35%,
+      oklch(0.988 0.006 54) 65%,
+      var(--bg) 100%);
   background-size: 220% 220%;
   animation: bg-drift 28s ease-in-out infinite;
   color: var(--text);
@@ -573,7 +580,7 @@ input[type='range']:active::-moz-range-thumb {
   margin-bottom: 0;
 }
 
-.hamiltonian-controls > .popover-trigger {
+.hamiltonian-controls>.popover-trigger {
   margin-bottom: 0;
   min-width: 0;
   max-width: 100%;
@@ -608,7 +615,7 @@ input[type='range']:active::-moz-range-thumb {
 }
 
 .popover-panel-inner {
-  padding: 0.7rem 0.85rem 0.75rem;
+  padding: 0.7rem 0.85rem 0.2rem;
   font-size: 0.8125rem;
   line-height: 1.5;
 }
@@ -617,12 +624,22 @@ input[type='range']:active::-moz-range-thumb {
   margin: 0;
 }
 
-.popover-panel-inner p + p {
+.popover-panel-inner p+p {
   margin-top: 0.45rem;
 }
 
 .popover-panel .katex {
   font-size: 0.95em;
+}
+
+.bloch-tip-popover {
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 16px));
+}
+
+.bloch-tip-popover .katex-display {
+  margin: 0 !important;
+  text-align: left;
 }
 
 .hint-bloch-tip {
