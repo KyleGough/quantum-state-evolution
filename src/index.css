@@ -276,38 +276,6 @@ body {
   animation: playback-glow 2.4s ease-in-out infinite;
 }
 
-.playback-control-cluster {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.playback-progress-ring {
-  position: absolute;
-  width: 52px;
-  height: 52px;
-  pointer-events: none;
-}
-
-.playback-progress-track {
-  fill: none;
-  stroke: var(--border);
-  stroke-width: 2;
-}
-
-.playback-progress-fill {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
-  stroke-linecap: round;
-  transition: stroke-dasharray 0.08s linear;
-}
-
-.playback.is-playing .playback-progress-fill {
-  filter: drop-shadow(0 0 4px oklch(0.55 0.16 45 / 0.45));
-}
-
 .icon-btn {
   display: flex;
   align-items: center;
@@ -339,10 +307,6 @@ body {
 .icon-btn:active:not(:disabled) {
   transform: translateY(0) scale(0.94);
   box-shadow: none;
-}
-
-.playback-primary:not(:disabled) {
-  box-shadow: 0 0 0 0 oklch(0.55 0.16 45 / 0.35);
 }
 
 .icon-btn-reset:hover:not(:disabled) .reset-icon {
