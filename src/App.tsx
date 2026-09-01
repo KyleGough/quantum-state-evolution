@@ -22,10 +22,8 @@ export default function App() {
         <p className="subtitle">Single-qubit Schrödinger evolution under a tunable Hamiltonian</p>
         <div className="app-byline">
           <a
-            href="https://github.com/KyleGough"
+            href="https://github.com/KyleGough/quantum-state-evolution"
             className="app-byline-icon"
-            target="_blank"
-            rel="noopener noreferrer"
             aria-label="Kyle Gough on GitHub"
           >
             <GitHubIcon />
@@ -33,8 +31,6 @@ export default function App() {
           <a
             href="https://kylegough.co.uk/"
             className="app-byline-name"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             Kyle Gough
           </a>

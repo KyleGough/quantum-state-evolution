@@ -32,8 +32,8 @@ export const C = {
   },
   /** Simplest string representation */
   formatFixedSimple: (a: Complex, digits = 2): string => {
-    const re = Math.abs(a.re).toFixed(digits)
-    const im = Math.abs(a.im).toFixed(digits)
+    const re = Math.abs(a.re).toFixed(digits).replace(/[.]0+$/, '')
+    const im = Math.abs(a.im).toFixed(digits).replace(/[.]0+$/, '')
     const imSign = a.im >= 0 ? '' : '-'
     const reSign = a.re >= 0 ? '' : '-'
     if (a.im === 0) return `${reSign}${re}`
