@@ -4,7 +4,7 @@ Interactive single-qubit visualiser: tune a Hamiltonian, pick $|\psi(0)\rangle$,
 
 **[Open the visualiser](https://kylegough.github.io/quantum-state-evolution/)**
 
-<img width="1630" height="1285" alt="Quantum State Evolution: Bloch sphere, Hamiltonian controls, and Dirac notation" src="https://github.com/user-attachments/assets/7db3832d-299f-45c8-89b0-ec2be358bf7d" />
+<img width="1604" height="1283" alt="image" src="https://github.com/user-attachments/assets/a6a0bd20-4d87-4648-9e74-cc0454a91c6b" />
 
 ## Hamiltonian
 
