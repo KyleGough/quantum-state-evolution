@@ -224,24 +224,38 @@ function StateVector() {
   const tipGlowRef = useRef<THREE.Mesh>(null)
   const initialized = useRef(false)
   const lastTime = useRef(-1)
+  const lastInitialId = useRef(useQuantumStore.getState().initialStateId)
+  const settling = useRef(false)
 
   const vectorMaterial = useMemo(() => createStateVectorMaterial(), [])
   const tipMaterial = useMemo(() => createTipMaterial(), [])
   const tipGlowMaterial = useMemo(() => createTipGlowMaterial(), [])
 
   useFrame((state, delta) => {
-    const { bloch, time, isPlaying } = useQuantumStore.getState()
+    const { bloch, time, isPlaying, initialStateId } = useQuantumStore.getState()
     _target.set(bloch.x, bloch.z, bloch.y)
 
     const jumped = Math.abs(time - lastTime.current) > 0.02
     lastTime.current = time
 
-    if (!initialized.current || (!isPlaying && jumped)) {
+    if (initialStateId !== lastInitialId.current) {
+      lastInitialId.current = initialStateId
+      settling.current = true
+    }
+    if (isPlaying) settling.current = false
+
+    if (!initialized.current) {
       _displayed.copy(_target)
       initialized.current = true
-    } else if (isPlaying) {
+    } else if (isPlaying || settling.current) {
       const t = 1 - Math.exp(-SMOOTH_RATE * delta)
       _displayed.lerp(_target, t)
+      if (settling.current && _displayed.distanceToSquared(_target) < 1e-8) {
+        _displayed.copy(_target)
+        settling.current = false
+      }
+    } else if (jumped) {
+      _displayed.copy(_target)
     }
 
     const len = _displayed.length()
@@ -492,6 +506,7 @@ function BlochScene() {
   const trailPoints = useRef<THREE.Vector3[]>([])
   const trailMesh = useMemo(() => createTrailRibbon(), [])
   const lastTime = useRef(-1)
+  const lastInitialId = useRef(useQuantumStore.getState().initialStateId)
   const smoothTrail = useRef(new THREE.Vector3())
 
   const wireframeMaterial = useMemo(
@@ -518,7 +533,7 @@ function BlochScene() {
   const atmosphereMaterial = useMemo(() => createAtmosphereMaterial(), [])
 
   useFrame((state, delta) => {
-    const { bloch, time, isPlaying } = useQuantumStore.getState()
+    const { bloch, time, isPlaying, initialStateId } = useQuantumStore.getState()
     const clock = state.clock.elapsedTime
     const pulse = isPlaying ? 1 : 0
 
@@ -526,11 +541,13 @@ function BlochScene() {
 
     const jumped = Math.abs(time - lastTime.current) > 0.02
     lastTime.current = time
+    const initialChanged = initialStateId !== lastInitialId.current
+    lastInitialId.current = initialStateId
 
     if (isPlaying) {
       const t = 1 - Math.exp(-SMOOTH_RATE * delta)
       smoothTrail.current.lerp(_target, t)
-    } else if (jumped) {
+    } else if (jumped || initialChanged) {
       trailPoints.current = []
       trailMesh.geometry.setDrawRange(0, 0)
       smoothTrail.current.copy(_target)
