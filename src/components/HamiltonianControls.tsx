@@ -7,11 +7,11 @@ import { KatexBlock, KatexInline } from './Katex'
 import { Popover } from './Popover'
 import { HamiltonianHint } from './SectionHints'
 
-const SLIDER_MIN = -4
-const SLIDER_MAX = 4
+const SLIDER_MIN = -2
+const SLIDER_MAX = 2
 const SLIDER_SCALE = 20
 const SLIDER_THUMB_PX = 7
-const SLIDER_TICKS = [-2, 0, 2] as const
+const SLIDER_TICKS = [-1, 0, 1] as const
 
 function tickLeft(value: number): string {
   const t = (value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)
