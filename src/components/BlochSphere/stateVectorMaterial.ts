@@ -101,10 +101,10 @@ const tipFragmentShader = /* glsl */ `
   }
 `
 
-export function createTipMaterial() {
+export function createTipMaterial(color: string = BLOCH_TIP_COLOR) {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uColor: { value: new THREE.Color(BLOCH_TIP_COLOR) },
+      uColor: { value: new THREE.Color(color) },
       uGlow: { value: new THREE.Color('#ffffff') },
       uTime: { value: 0 },
       uPulse: { value: 0 },
@@ -117,10 +117,10 @@ export function createTipMaterial() {
   })
 }
 
-export function createTipGlowMaterial() {
+export function createTipGlowMaterial(color: string = BLOCH_TIP_COLOR) {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uColor: { value: new THREE.Color(BLOCH_TIP_COLOR) },
+      uColor: { value: new THREE.Color(color) },
       uTime: { value: 0 },
       uPulse: { value: 0 },
     },

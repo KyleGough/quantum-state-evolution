@@ -1,12 +1,14 @@
-import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, useCursor } from '@react-three/drei'
 import * as THREE from 'three'
 import { useQuantumStore } from '../../store/useQuantumStore'
 import { ket, stateVectorKatex } from '../../sim/katexFormat'
+import { plusEnergyEigenstate } from '../../sim/hamiltonian'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { KatexBlock } from '../Katex'
+import { EnergyEigenvectorHint } from '../SectionHints'
 import { MathLabel } from './MathLabel'
 import {
   createStateVectorMaterial,
@@ -31,9 +33,6 @@ const AXIS_LEN = 1.02
 const AXIS_HEAD_LENGTH = 0.042
 const AXIS_HEAD_WIDTH = 0.016
 const AXIS_SHAFT_WIDTH = 0.0032
-const CROSS_ARM = 0.04
-const CROSS_THICK = 0.002
-const CROSS_RADIUS = 1
 const SMOOTH_RATE = 14
 
 const _dir = new THREE.Vector3()
@@ -47,7 +46,11 @@ const _slerpQ = new THREE.Quaternion()
 const _upZ = new THREE.Vector3(0, 0, 1)
 const _yAxis = new THREE.Vector3(0, 1, 0)
 const _projected = new THREE.Vector3()
-const tipScreen = { x: 0, y: 0 }
+const _energyPos = new THREE.Vector3()
+const stateTipScreen = { x: 0, y: 0 }
+const energyTipScreen = { x: 0, y: 0 }
+
+type BlochMarker = 'state' | 'energy'
 
 function positionTipPopover(panel: HTMLDivElement, x: number, y: number) {
   const inner = panel.firstElementChild as HTMLElement | null
@@ -78,22 +81,36 @@ function positionTipPopover(panel: HTMLDivElement, x: number, y: number) {
   panel.style.left = `${left}px`
 }
 
-function projectTipToScreen(camera: THREE.Camera, canvas: HTMLCanvasElement) {
-  _projected.copy(_displayed).project(camera)
+function projectWorldToScreen(
+  world: THREE.Vector3,
+  camera: THREE.Camera,
+  canvas: HTMLCanvasElement,
+  out: { x: number; y: number },
+) {
+  _projected.copy(world).project(camera)
   const rect = canvas.getBoundingClientRect()
-  tipScreen.x = rect.left + (_projected.x * 0.5 + 0.5) * rect.width
-  tipScreen.y = rect.top + (-_projected.y * 0.5 + 0.5) * rect.height
+  out.x = rect.left + (_projected.x * 0.5 + 0.5) * rect.width
+  out.y = rect.top + (-_projected.y * 0.5 + 0.5) * rect.height
 }
 
-function BlochTipStatePopover({ panelRef }: { panelRef: RefObject<HTMLDivElement> }) {
-  const psi = useQuantumStore((s) => s.psi)
+function BlochMarkerPopover({
+  panelRef,
+  screen,
+  className,
+  children,
+}: {
+  panelRef: RefObject<HTMLDivElement>
+  screen: { x: number; y: number }
+  className?: string
+  children: ReactNode
+}) {
   const reduceMotion = usePrefersReducedMotion()
   const [shown, setShown] = useState(false)
 
   useLayoutEffect(() => {
     const panel = panelRef.current
-    if (panel) positionTipPopover(panel, tipScreen.x, tipScreen.y)
-  }, [panelRef, psi])
+    if (panel) positionTipPopover(panel, screen.x, screen.y)
+  }, [panelRef, screen, children])
 
   useLayoutEffect(() => {
     if (reduceMotion) {
@@ -110,17 +127,17 @@ function BlochTipStatePopover({ panelRef }: { panelRef: RefObject<HTMLDivElement
     if (!panel || !inner) return
 
     const observer = new ResizeObserver(() => {
-      positionTipPopover(panel, tipScreen.x, tipScreen.y)
+      positionTipPopover(panel, screen.x, screen.y)
     })
     observer.observe(inner)
     return () => observer.disconnect()
-  }, [panelRef, psi])
+  }, [panelRef, screen, children])
 
   return createPortal(
     <div
       ref={panelRef}
       role="tooltip"
-      className="popover-panel bloch-tip-popover"
+      className={`popover-panel bloch-tip-popover${className ? ` ${className}` : ''}`}
       aria-hidden={!shown}
       style={{
         opacity: shown ? 1 : 0,
@@ -128,11 +145,37 @@ function BlochTipStatePopover({ panelRef }: { panelRef: RefObject<HTMLDivElement
         transition: reduceMotion ? 'none' : `opacity ${POPOVER_DURATION_MS}ms var(--ease)`,
       }}
     >
-      <div className="popover-panel-inner">
-        <KatexBlock math={stateVectorKatex(psi[0], psi[1], true)} />
-      </div>
+      <div className="popover-panel-inner">{children}</div>
     </div>,
     document.body,
+  )
+}
+
+function BlochTipStatePopover({ panelRef }: { panelRef: RefObject<HTMLDivElement> }) {
+  const psi = useQuantumStore((s) => s.psi)
+
+  return (
+    <BlochMarkerPopover panelRef={panelRef} screen={stateTipScreen}>
+      <KatexBlock math={stateVectorKatex(psi[0], psi[1], true)} />
+    </BlochMarkerPopover>
+  )
+}
+
+function BlochTipEnergyPopover({ panelRef }: { panelRef: RefObject<HTMLDivElement> }) {
+  const hamiltonian = useQuantumStore((s) => s.hamiltonian)
+  const eigen = plusEnergyEigenstate(hamiltonian)
+  if (!eigen) return null
+
+  return (
+    <BlochMarkerPopover panelRef={panelRef} screen={energyTipScreen} className="bloch-energy-popover">
+      <EnergyEigenvectorHint
+        alpha={eigen.psi[0]}
+        beta={eigen.psi[1]}
+        bloch={eigen.bloch}
+        energy={eigen.energy}
+        omegaR={eigen.omegaR}
+      />
+    </BlochMarkerPopover>
   )
 }
 
@@ -373,14 +416,14 @@ function trailAge(index: number, count: number): number {
 }
 
 function StateVector({
-  tipHovered,
+  hovered,
   isPlaying,
-  onTipHover,
+  onHover,
   panelRef,
 }: {
-  tipHovered: boolean
+  hovered: boolean
   isPlaying: boolean
-  onTipHover: (hovered: boolean) => void
+  onHover: (hovered: boolean) => void
   panelRef: RefObject<HTMLDivElement>
 }) {
   const rootRef = useRef<THREE.Group>(null)
@@ -398,7 +441,7 @@ function StateVector({
   const tipMaterial = useMemo(() => createTipMaterial(), [])
   const tipGlowMaterial = useMemo(() => createTipGlowMaterial(), [])
 
-  useCursor(tipHovered && !isPlaying)
+  useCursor(hovered && !isPlaying)
 
   useFrame((state, delta) => {
     const { bloch, time, isPlaying: playing, initialStateId } = useQuantumStore.getState()
@@ -470,9 +513,9 @@ function StateVector({
       hitRef.current.position.copy(_displayed)
     }
 
-    projectTipToScreen(state.camera, state.gl.domElement)
+    projectWorldToScreen(_displayed, state.camera, state.gl.domElement, stateTipScreen)
     const panel = panelRef.current
-    if (panel) positionTipPopover(panel, tipScreen.x, tipScreen.y)
+    if (panel) positionTipPopover(panel, stateTipScreen.x, stateTipScreen.y)
   })
 
   return (
@@ -496,9 +539,9 @@ function StateVector({
         renderOrder={4}
         onPointerOver={(event) => {
           event.stopPropagation()
-          onTipHover(true)
+          onHover(true)
         }}
-        onPointerOut={() => onTipHover(false)}
+        onPointerOut={() => onHover(false)}
       >
         <sphereGeometry args={[TIP_HIT_RADIUS, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
@@ -571,51 +614,95 @@ function CoordinateAxes() {
   )
 }
 
-function RotationAxisCross() {
-  const groupRef = useRef<THREE.Group>(null)
-  const material = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: ROTATION_AXIS_COLOR,
-        toneMapped: false,
-        depthWrite: false,
-        transparent: true,
-        opacity: 0.95,
-      }),
-    [],
-  )
+function EnergyEigenstateTip({
+  hovered,
+  onHover,
+  panelRef,
+}: {
+  hovered: boolean
+  onHover: (hovered: boolean) => void
+  panelRef: RefObject<HTMLDivElement>
+}) {
+  const tipRef = useRef<THREE.Mesh>(null)
+  const tipGlowRef = useRef<THREE.Mesh>(null)
+  const hitRef = useRef<THREE.Mesh>(null)
+  const tipMaterial = useMemo(() => createTipMaterial(ROTATION_AXIS_COLOR), [])
+  const tipGlowMaterial = useMemo(() => createTipGlowMaterial(ROTATION_AXIS_COLOR), [])
+
+  const onHoverRef = useRef(onHover)
+  onHoverRef.current = onHover
+  const hoveredRef = useRef(hovered)
+  hoveredRef.current = hovered
+
+  useCursor(hovered)
 
   useFrame((state) => {
-    const group = groupRef.current
-    if (!group) return
-
     const { hamiltonian, isPlaying } = useQuantumStore.getState()
     const len = Math.hypot(hamiltonian.OmegaX, hamiltonian.OmegaY, hamiltonian.omega)
-    if (len < 1e-6) {
-      group.visible = false
+    const visible = len >= 1e-6
+    const pulse = isPlaying ? 1 : 0
+    const clock = state.clock.elapsedTime
+
+    tipMaterial.uniforms.uTime.value = clock
+    tipMaterial.uniforms.uPulse.value = pulse
+    tipGlowMaterial.uniforms.uTime.value = clock
+    tipGlowMaterial.uniforms.uPulse.value = pulse
+
+    if (!visible) {
+      if (hitRef.current) hitRef.current.visible = false
+      if (tipRef.current) tipRef.current.visible = false
+      if (tipGlowRef.current) tipGlowRef.current.visible = false
+      if (hoveredRef.current) onHoverRef.current(false)
       return
     }
 
-    group.visible = true
-    _dir.copy(blochToThree(hamiltonian.OmegaX / len, hamiltonian.OmegaY / len, hamiltonian.omega / len))
-    group.position.copy(_dir).multiplyScalar(CROSS_RADIUS)
-    group.quaternion.setFromUnitVectors(_upZ, _dir)
+    _energyPos.set(
+      hamiltonian.OmegaX / len,
+      hamiltonian.omega / len,
+      hamiltonian.OmegaY / len,
+    )
 
-    const pulse = isPlaying ? 1 : 0
-    const scale = 1 + pulse * 0.08 * Math.sin(state.clock.elapsedTime * 4.2)
-    group.scale.setScalar(scale)
-    material.opacity = 0.72 + pulse * 0.23
+    if (tipRef.current) {
+      tipRef.current.visible = true
+      tipRef.current.position.copy(_energyPos)
+    }
+    if (tipGlowRef.current) {
+      tipGlowRef.current.visible = true
+      tipGlowRef.current.position.copy(_energyPos)
+      const glowScale = 1 + pulse * 0.12 * Math.sin(clock * 5.5)
+      tipGlowRef.current.scale.setScalar(glowScale)
+    }
+    if (hitRef.current) {
+      hitRef.current.visible = true
+      hitRef.current.position.copy(_energyPos)
+    }
+
+    projectWorldToScreen(_energyPos, state.camera, state.gl.domElement, energyTipScreen)
+    const panel = panelRef.current
+    if (panel) positionTipPopover(panel, energyTipScreen.x, energyTipScreen.y)
   })
 
   return (
-    <group ref={groupRef}>
-      <mesh material={material} renderOrder={3}>
-        <boxGeometry args={[CROSS_ARM, CROSS_THICK, CROSS_THICK]} />
+    <>
+      <mesh ref={tipGlowRef} material={tipGlowMaterial} renderOrder={2}>
+        <sphereGeometry args={[TIP_GLOW_RADIUS, 24, 24]} />
       </mesh>
-      <mesh material={material} renderOrder={3}>
-        <boxGeometry args={[CROSS_THICK, CROSS_ARM, CROSS_THICK]} />
+      <mesh ref={tipRef} material={tipMaterial} renderOrder={3}>
+        <sphereGeometry args={[TIP_RADIUS, 24, 24]} />
       </mesh>
-    </group>
+      <mesh
+        ref={hitRef}
+        renderOrder={4}
+        onPointerOver={(event) => {
+          event.stopPropagation()
+          onHover(true)
+        }}
+        onPointerOut={() => onHover(false)}
+      >
+        <sphereGeometry args={[TIP_HIT_RADIUS, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
+      </mesh>
+    </>
   )
 }
 
@@ -692,15 +779,17 @@ function writeTrailRibbon(mesh: THREE.Mesh, points: THREE.Vector3[], cameraPos: 
 }
 
 function BlochScene({
-  tipHovered,
+  hoveredMarker,
   isPlaying,
-  onTipHover,
-  panelRef,
+  onMarkerHover,
+  statePanelRef,
+  energyPanelRef,
 }: {
-  tipHovered: boolean
+  hoveredMarker: BlochMarker | null
   isPlaying: boolean
-  onTipHover: (hovered: boolean) => void
-  panelRef: RefObject<HTMLDivElement>
+  onMarkerHover: (id: BlochMarker, hovered: boolean) => void
+  statePanelRef: RefObject<HTMLDivElement>
+  energyPanelRef: RefObject<HTMLDivElement>
 }) {
   const trailPoints = useRef<THREE.Vector3[]>([])
   const trailMesh = useMemo(() => createTrailRibbon(), [])
@@ -810,13 +899,17 @@ function BlochScene({
       <MathLabel position={[0, 0, -1.14]} math={ket('{-i}')} distanceFactor={10} />
 
       <CoordinateAxes />
-      <RotationAxisCross />
       <primitive object={trailMesh} />
       <StateVector
-        tipHovered={tipHovered}
+        hovered={hoveredMarker === 'state'}
         isPlaying={isPlaying}
-        onTipHover={onTipHover}
-        panelRef={panelRef}
+        onHover={(hovered) => onMarkerHover('state', hovered)}
+        panelRef={statePanelRef}
+      />
+      <EnergyEigenstateTip
+        hovered={hoveredMarker === 'energy'}
+        onHover={(hovered) => onMarkerHover('energy', hovered)}
+        panelRef={energyPanelRef}
       />
       <OrbitControls enablePan={false} minDistance={2.4} maxDistance={4.5} />
     </>
@@ -825,14 +918,22 @@ function BlochScene({
 
 export function BlochSphere() {
   const isPlaying = useQuantumStore((s) => s.isPlaying)
-  const [tipHovered, setTipHovered] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
+  const [hoveredMarker, setHoveredMarker] = useState<BlochMarker | null>(null)
+  const statePanelRef = useRef<HTMLDivElement>(null)
+  const energyPanelRef = useRef<HTMLDivElement>(null)
+
+  const onMarkerHover = (id: BlochMarker, hovered: boolean) => {
+    setHoveredMarker((current) => {
+      if (hovered) return id
+      return current === id ? null : current
+    })
+  }
 
   return (
     <div className={`bloch-sphere-wrap${isPlaying ? ' is-playing' : ''}`}>
       <div
         className="bloch-sphere"
-        onPointerLeave={() => setTipHovered(false)}
+        onPointerLeave={() => setHoveredMarker(null)}
       >
         <Canvas
           camera={{ position: [2.6, 1.4, 2.6], fov: 42 }}
@@ -844,14 +945,18 @@ export function BlochSphere() {
           }}
         >
           <BlochScene
-            tipHovered={tipHovered}
+            hoveredMarker={hoveredMarker}
             isPlaying={isPlaying}
-            onTipHover={setTipHovered}
-            panelRef={panelRef}
+            onMarkerHover={onMarkerHover}
+            statePanelRef={statePanelRef}
+            energyPanelRef={energyPanelRef}
           />
         </Canvas>
       </div>
-      {tipHovered && !isPlaying && <BlochTipStatePopover panelRef={panelRef} />}
+      {hoveredMarker === 'state' && !isPlaying && (
+        <BlochTipStatePopover panelRef={statePanelRef} />
+      )}
+      {hoveredMarker === 'energy' && <BlochTipEnergyPopover panelRef={energyPanelRef} />}
     </div>
   )
 }

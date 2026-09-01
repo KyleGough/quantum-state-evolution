@@ -58,6 +58,54 @@ export function stateVectorKatex(alpha: Complex, beta: Complex, simple: boolean 
   return `${ket(PSI)} = \\begin{pmatrix} ${formatComplexKatex(alpha, simple)} \\\\ ${formatComplexKatex(beta, simple)} \\end{pmatrix}`
 }
 
+const AMP_EPS = 0.03
+const INV_SQRT2 = 1 / Math.SQRT2
+
+function snapRealKatex(x: number): string | null {
+  if (Math.abs(x) < AMP_EPS) return '0'
+  if (Math.abs(x - 1) < AMP_EPS) return '1'
+  if (Math.abs(x + 1) < AMP_EPS) return '-1'
+  if (Math.abs(x - INV_SQRT2) < AMP_EPS) return String.raw`\frac{1}{\sqrt{2}}`
+  if (Math.abs(x + INV_SQRT2) < AMP_EPS) return String.raw`-\frac{1}{\sqrt{2}}`
+  return null
+}
+
+/** Compact KaTeX for a single amplitude: 0, 1, i, 1/√2, …, else a short decimal. */
+export function formatAmplitudeKatex(c: Complex): string {
+  const re = snapRealKatex(c.re)
+  const im = snapRealKatex(c.im)
+  if (re !== null && im !== null) {
+    if (im === '0') return re
+    const imTex =
+      im === '1' ? 'i' : im === '-1' ? '-i' : im.startsWith('-') ? `${im}i` : `${im}i`
+    if (re === '0') return imTex
+    if (imTex.startsWith('-')) return `${re}${imTex}`
+    return `${re}+${imTex}`
+  }
+  return `\\mathtt{${C.formatFixedSimple(c)}}`
+}
+
+export function energyEigenvectorKatex(alpha: Complex, beta: Complex, named?: string | null): string {
+  const vector = `\\begin{pmatrix} ${formatAmplitudeKatex(alpha)} \\\\ ${formatAmplitudeKatex(beta)} \\end{pmatrix}`
+  if (named) return `${ket('E_+')} = ${named} = ${vector}`
+  return `${ket('E_+')} = ${vector}`
+}
+
+export function energyEigenvalueKatex(energy: number, omegaR: number): string {
+  return String.raw`E_+ = +\frac{\omega_R}{2} = ${energy.toFixed(2)},\quad \omega_R = ${omegaR.toFixed(2)}`
+}
+
+export function namedKetFromBloch(x: number, y: number, z: number): string | null {
+  const tol = 0.08
+  if (Math.abs(x) < tol && Math.abs(y) < tol && z > 1 - tol) return ket('0')
+  if (Math.abs(x) < tol && Math.abs(y) < tol && z < -1 + tol) return ket('1')
+  if (x > 1 - tol && Math.abs(y) < tol && Math.abs(z) < tol) return ket('{+}')
+  if (x < -1 + tol && Math.abs(y) < tol && Math.abs(z) < tol) return ket('{-}')
+  if (Math.abs(x) < tol && y > 1 - tol && Math.abs(z) < tol) return ket('{+i}')
+  if (Math.abs(x) < tol && y < -1 + tol && Math.abs(z) < tol) return ket('{-i}')
+  return null
+}
+
 export function blochVectorKatex(x: number, y: number, z: number): string {
   return `${braket(SIGMA)} = (${formatRealFixed(x)},\\; ${formatRealFixed(y)},\\; ${formatRealFixed(z)})`
 }

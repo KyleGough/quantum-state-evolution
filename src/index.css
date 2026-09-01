@@ -615,7 +615,7 @@ input[type='range']:active::-moz-range-thumb {
 }
 
 .popover-panel-inner {
-  padding: 0.7rem 0.85rem 0.2rem;
+  padding: 0.7rem 0.85rem 0.7rem;
   font-size: 0.8125rem;
   line-height: 1.5;
 }
@@ -637,9 +637,17 @@ input[type='range']:active::-moz-range-thumb {
   max-width: min(22rem, calc(100vw - 16px));
 }
 
+.bloch-tip-popover.bloch-energy-popover {
+  width: min(22rem, calc(100vw - 16px));
+}
+
 .bloch-tip-popover .katex-display {
   margin: 0 !important;
   text-align: left;
+}
+
+.bloch-tip-popover.bloch-energy-popover .katex-display {
+  margin: 0 0 0.45rem !important;
 }
 
 .hint-bloch-tip {

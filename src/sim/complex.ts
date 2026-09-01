@@ -34,10 +34,10 @@ export const C = {
   formatFixedSimple: (a: Complex, digits = 2): string => {
     const re = Math.abs(a.re).toFixed(digits)
     const im = Math.abs(a.im).toFixed(digits)
-    const imSign = a.im >= 0 ? '+' : '-'
+    const imSign = a.im >= 0 ? '' : '-'
     const reSign = a.re >= 0 ? '' : '-'
-    if (a.im === 0) return re
+    if (a.im === 0) return `${reSign}${re}`
     if (a.re === 0) return `${imSign}${im}i`
-    return `${reSign}${re}${imSign}${im}i`
+    return `${reSign}${re}${a.im >= 0 ? '+' : '-'}${im}i`
   },
 }

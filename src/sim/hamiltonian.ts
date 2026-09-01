@@ -1,5 +1,5 @@
-import { C } from './complex'
-import type { Matrix2 } from './state'
+import { C, type Complex } from './complex'
+import { State, type Matrix2, type StateVector } from './state'
 
 /** Pauli matrices σ_x, σ_y, σ_z */
 const SIGMA_X: Matrix2 = [
@@ -54,6 +54,53 @@ export function blochPeriod(params: HamiltonianParams): number | null {
   const rate = blochRate(params)
   if (rate < 1e-12) return null
   return (2 * Math.PI) / rate
+}
+
+export interface PlusEnergyEigenstate {
+  psi: StateVector
+  energy: number
+  omegaR: number
+  bloch: { x: number; y: number; z: number }
+}
+
+function gaugeRealNonneg(psi: StateVector): StateVector {
+  const pivot = C.abs2(psi[0]) > 1e-12 ? psi[0] : psi[1]
+  const phase = Math.atan2(pivot.im, pivot.re)
+  const g: Complex = { re: Math.cos(-phase), im: Math.sin(-phase) }
+  const alpha = C.mul(g, psi[0])
+  const beta = C.mul(g, psi[1])
+  return [
+    { re: alpha.re, im: Math.abs(alpha.im) < 1e-10 ? 0 : alpha.im },
+    { re: beta.re, im: Math.abs(beta.im) < 1e-10 ? 0 : beta.im },
+  ]
+}
+
+/**
+ * Higher-energy eigenstate of H = (1/2) Ω⃗ · σ, Bloch vector along +Ω⃗.
+ * Returns null when H = 0 (no preferred axis).
+ */
+export function plusEnergyEigenstate(params: HamiltonianParams): PlusEnergyEigenstate | null {
+  const { omega, OmegaX, OmegaY } = params
+  const omegaR = Math.hypot(omega, OmegaX, OmegaY)
+  if (omegaR < 1e-12) return null
+
+  const unnormalised: StateVector =
+    omegaR + omega > 1e-9
+      ? [C.from(omegaR + omega), C.from(OmegaX, OmegaY)]
+      : [C.from(OmegaX, -OmegaY), C.from(omegaR - omega)]
+
+  const psi = gaugeRealNonneg(State.normalize(unnormalised))
+
+  return {
+    psi,
+    energy: omegaR / 2,
+    omegaR,
+    bloch: {
+      x: OmegaX / omegaR,
+      y: OmegaY / omegaR,
+      z: omega / omegaR,
+    },
+  }
 }
 
 /**

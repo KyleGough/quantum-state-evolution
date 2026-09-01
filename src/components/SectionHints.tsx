@@ -1,5 +1,5 @@
-import { KatexInline } from './Katex'
-import { braket, ket } from '../sim/katexFormat'
+import { KatexBlock, KatexInline } from './Katex'
+import { braket, energyEigenvalueKatex, energyEigenvectorKatex, ket, namedKetFromBloch } from '../sim/katexFormat'
 import { BLOCH_TIP_COLOR, ROTATION_AXIS_COLOR } from './BlochSphere/stateVectorMaterial'
 
 const PSI = String.raw`\psi`
@@ -42,11 +42,12 @@ export function HamiltonianHint() {
         <KatexInline math={String.raw`\sigma_z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}`} />
       </p>
       <p>
-        On the Bloch sphere the rotation axis <KatexInline math={String.raw`(\Omega_x, \Omega_y, \omega)`} /> is the{' '}
+        On the Bloch sphere the higher-energy eigenstate of <KatexInline math="H" /> lies
+        along the rotation axis <KatexInline math={String.raw`(\Omega_x, \Omega_y, \omega)`} />, the{' '}
         <span className="hint-bloch-tip" style={{ color: ROTATION_AXIS_COLOR }}>
           red
         </span>{' '}
-        cross. The state precesses at{' '}
+        dot. The state precesses at{' '}
         <KatexInline math={String.raw`\omega_R = \sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2}`} /> with
         period <KatexInline math={String.raw`T = 2\pi/\omega_R`} />.
       </p>
@@ -176,6 +177,40 @@ export function BlochVectorHint() {
       </p>
       <p>
         <KatexInline math={String.raw`\langle\sigma_z\rangle = \langle\psi|\sigma_z|\psi\rangle`} />
+      </p>
+    </>
+  )
+}
+
+export function EnergyEigenvectorHint({
+  alpha,
+  beta,
+  bloch,
+  energy,
+  omegaR,
+}: {
+  alpha: { re: number; im: number }
+  beta: { re: number; im: number }
+  bloch: { x: number; y: number; z: number }
+  energy: number
+  omegaR: number
+}) {
+  const named = namedKetFromBloch(bloch.x, bloch.y, bloch.z)
+
+  return (
+    <>
+      <KatexBlock math={energyEigenvectorKatex(alpha, beta, named)} />
+      <p>
+        <KatexInline math={String.raw`H${ket('E_+')} = E_+${ket('E_+')}`} /> with{' '}
+        <KatexInline math={energyEigenvalueKatex(energy, omegaR)} />.
+      </p>
+      <p>
+        This is the higher-energy eigenvector of <KatexInline math="H" />.
+      </p>
+      <p>
+        A qubit prepared here only acquires a global phase, so the Bloch vector is
+        stationary. Every other state precesses about this axis at{' '}
+        <KatexInline math={String.raw`\omega_R`} />.
       </p>
     </>
   )
