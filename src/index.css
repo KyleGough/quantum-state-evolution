@@ -252,11 +252,6 @@ body {
   width: 100%;
   min-height: 0;
   position: relative;
-  transition: filter 0.45s var(--ease);
-}
-
-.bloch-sphere-wrap.is-playing .bloch-sphere {
-  filter: saturate(1.06) contrast(1.02);
 }
 
 .bloch-sphere {
@@ -773,11 +768,6 @@ input[type='range']:active::-moz-range-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.bloch-math-label .katex {
-  font-size: 0.72rem;
-  color: var(--state-ket);
 }
 
 .slider-label .katex {

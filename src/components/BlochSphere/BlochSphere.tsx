@@ -294,7 +294,7 @@ function createFacingFadeMaterial(options: {
 
           void main() {
             float t = smoothstep(0.0, 0.35, vFacing);
-            float breathe = 1.0 + uPulse * 0.15 * sin(uTime * 3.2);
+            float breathe = 1.0 + uPulse * (0.06 + 0.09 * 0.5 * (sin(uTime * 3.2) + 1.0));
             float alpha = mix(uBackOpacity, uFrontOpacity, t) * breathe;
             gl_FragColor = vec4(uColor, alpha);
           }
@@ -398,7 +398,7 @@ function createAtmosphereMaterial() {
         float ndv = abs(dot(normalize(vNormal), viewDir));
         float fresnel = pow(1.0 - ndv, 3.2);
         float wave = 0.5 + 0.5 * sin(uTime * 2.8);
-        float alpha = fresnel * (0.04 + uPulse * 0.06 * wave);
+        float alpha = fresnel * (0.04 + uPulse * (0.035 + 0.055 * wave));
         gl_FragColor = vec4(uColor, alpha);
       }
     `,
@@ -938,7 +938,7 @@ export function BlochSphere() {
   }
 
   return (
-    <div className={`bloch-sphere-wrap${isPlaying ? ' is-playing' : ''}`}>
+    <div className="bloch-sphere-wrap">
       <div
         className="bloch-sphere"
         onPointerLeave={() => setHoveredMarker(null)}

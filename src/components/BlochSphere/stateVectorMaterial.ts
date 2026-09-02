@@ -28,7 +28,7 @@ const fragmentShader = /* glsl */ `
     vec3 normal = normalize(vNormal);
     float ndv = abs(dot(normal, viewDir));
 
-    float pulse = 1.0 + uPulse * (0.12 + 0.08 * sin(uTime * 5.5));
+    float pulse = 1.0 + uPulse * (0.16 + 0.08 * sin(uTime * 5.5));
     float rim = pow(1.0 - ndv, 2.2);
     float body = pow(ndv, 0.45);
 
