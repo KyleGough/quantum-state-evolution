@@ -82,7 +82,7 @@ export function stateVectorKatex(alpha: Complex, beta: Complex, simple: boolean 
   return `${ket(PSI)} = ${vector}`
 }
 
-const AMP_EPS = 0.03
+const AMP_EPS = 0.005
 const INV_SQRT2 = 1 / Math.SQRT2
 
 function snapRealKatex(x: number): string | null {
@@ -137,7 +137,7 @@ export function energyEigenvalueKatex(energy: number, omegaR: number, which: Ene
 }
 
 export function namedKetFromBloch(x: number, y: number, z: number): string | null {
-  const tol = 0.08
+  const tol = 0.005
   if (Math.abs(x) < tol && Math.abs(y) < tol && z > 1 - tol) return ket('0')
   if (Math.abs(x) < tol && Math.abs(y) < tol && z < -1 + tol) return ket('1')
   if (x > 1 - tol && Math.abs(y) < tol && Math.abs(z) < tol) return ket('{+}')
