@@ -157,40 +157,6 @@ body {
   color: var(--text-dim);
 }
 
-.app-byline {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.5rem 0 0;
-  pointer-events: auto;
-}
-
-.app-byline a {
-  color: var(--text-dim);
-  text-decoration: none;
-  transition: color 0.18s var(--ease);
-}
-
-.app-byline a:hover {
-  color: var(--accent);
-}
-
-.app-byline a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: var(--radius);
-}
-
-.app-byline-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.app-byline-name {
-  font-size: 1rem;
-}
-
 .app-body {
   flex: 1;
   display: flex;
@@ -237,6 +203,7 @@ body {
 }
 
 .viz-column {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -294,6 +261,30 @@ body {
 .playback.is-playing .playback-time {
   color: var(--accent);
   animation: playback-glow 2.4s ease-in-out infinite;
+}
+
+.playback-github {
+  position: absolute;
+  right: 0;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: color 0.18s var(--ease);
+}
+
+.playback-github:hover {
+  color: var(--accent);
+}
+
+.playback-github:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .icon-btn {
@@ -1124,5 +1115,10 @@ input[type='range']:active::-moz-range-thumb {
     flex-wrap: wrap;
     gap: 0.75rem;
     padding: 0.625rem 1rem;
+  }
+
+  .playback-github {
+    bottom: 0.625rem;
+    right: 0.625rem;
   }
 }

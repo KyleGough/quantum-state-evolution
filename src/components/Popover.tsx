@@ -12,6 +12,11 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { useMediaQuery } from '../hooks/useMediaQuery'
+
+/** Hint panels sit to the left of the sidebar and need this much viewport. */
+const MIN_POPOVER_VIEWPORT_PX = 825
+const NARROW_POPOVER_QUERY = `(max-width: ${MIN_POPOVER_VIEWPORT_PX - 1}px)`
 
 const CLOSE_DELAY_MS = 125
 const DURATION_MS = 400
@@ -93,6 +98,7 @@ export function Popover({ content, children }: PopoverProps) {
   const tooltipId = `popover-${reactId.replace(/:/g, '')}`
   const { isActive, open, close } = useExclusiveOpen(tooltipId)
   const reduceMotion = usePrefersReducedMotion()
+  const tooNarrow = useMediaQuery(NARROW_POPOVER_QUERY)
 
   const triggerRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -112,10 +118,10 @@ export function Popover({ content, children }: PopoverProps) {
   }, [])
 
   const tryOpen = useCallback(() => {
-    if (dismissedRef.current) return
+    if (tooNarrow || dismissedRef.current) return
     cancelClose()
     open()
-  }, [cancelClose, open])
+  }, [tooNarrow, cancelClose, open])
 
   const scheduleClose = useCallback(() => {
     cancelClose()
@@ -129,9 +135,15 @@ export function Popover({ content, children }: PopoverProps) {
   useEffect(() => () => cancelClose(), [cancelClose])
 
   useLayoutEffect(() => {
+    if (tooNarrow) {
+      close()
+      setShown(false)
+      setMounted(false)
+      return
+    }
     if (isActive) setMounted(true)
     else setShown(false)
-  }, [isActive])
+  }, [isActive, tooNarrow, close])
 
   useEffect(() => {
     if (isActive || !mounted) return
@@ -218,7 +230,7 @@ export function Popover({ content, children }: PopoverProps) {
     scheduleClose()
   }
 
-  const panel = mounted
+  const panel = mounted && !tooNarrow
     ? createPortal(
       <div
         ref={panelRef}
@@ -247,7 +259,7 @@ export function Popover({ content, children }: PopoverProps) {
       <div
         ref={triggerRef}
         className="popover-trigger"
-        tabIndex={0}
+        tabIndex={tooNarrow ? -1 : 0}
         aria-describedby={isActive ? tooltipId : undefined}
         onPointerEnter={tryOpen}
         onPointerLeave={scheduleClose}
