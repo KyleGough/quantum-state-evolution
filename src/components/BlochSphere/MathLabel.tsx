@@ -5,7 +5,7 @@ import { renderKatex } from '../Katex'
 /** Viewport width at which labels reach their maximum (current) size. */
 const LABEL_MAX_VIEWPORT_PX = 1440
 /** Sublinear exponent so narrower viewports shrink labels less aggressively than width/1440. */
-const LABEL_VIEWPORT_SCALE_EXPONENT = 0.5
+const LABEL_VIEWPORT_SCALE_EXPONENT = 0.33
 /** Canvas font size used when rasterizing; the sprite is scaled down in world units. */
 const RASTER_FONT_PX = 64
 /** World-space height of a label at `distanceFactor` 10 on a 1440px-wide viewport. */
