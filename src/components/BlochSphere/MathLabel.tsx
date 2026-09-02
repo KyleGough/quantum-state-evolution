@@ -4,6 +4,8 @@ import { renderKatex } from '../Katex'
 
 /** Viewport width at which labels reach their maximum (current) size. */
 const LABEL_MAX_VIEWPORT_PX = 1440
+/** Sublinear exponent so narrower viewports shrink labels less aggressively than width/1440. */
+const LABEL_VIEWPORT_SCALE_EXPONENT = 0.5
 /** Canvas font size used when rasterizing; the sprite is scaled down in world units. */
 const RASTER_FONT_PX = 64
 /** World-space height of a label at `distanceFactor` 10 on a 1440px-wide viewport. */
@@ -186,7 +188,8 @@ export function MathLabel({
     if (!texture) return [0, 0, 1] as [number, number, number]
     const image = texture.image as HTMLCanvasElement
     const width = Number(viewportWidth) || LABEL_MAX_VIEWPORT_PX
-    const viewportScale = Math.min(1, width / LABEL_MAX_VIEWPORT_PX)
+    const linear = Math.min(1, width / LABEL_MAX_VIEWPORT_PX)
+    const viewportScale = linear ** LABEL_VIEWPORT_SCALE_EXPONENT
     const height = WORLD_HEIGHT_AT_FACTOR_10 * (distanceFactor / 10) * viewportScale
     const aspect = image.height > 0 ? image.width / image.height : 1
     return [height * aspect, height, 1] as [number, number, number]
