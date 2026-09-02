@@ -825,10 +825,14 @@ function BlochScene({
 
     blochTarget(bloch, _target)
 
-    const jumped = Math.abs(time - lastTime.current) > 0.02
+    const prevTime = lastTime.current
     lastTime.current = time
     const initialChanged = initialStateId !== lastInitialId.current
     lastInitialId.current = initialStateId
+    // Reset / Hamiltonian / initial-state snap time back to 0. A pause does not:
+    // playback and this useFrame are separate rAF loops, so time can still tick
+    // forward by a frame (often > 20ms) after the last trail write.
+    const timeRewound = time < prevTime - 1e-6
 
     if (isPlaying) {
       if (smoothTrail.current.lengthSq() < 1e-12) {
@@ -837,7 +841,7 @@ function BlochScene({
         const t = 1 - Math.exp(-SMOOTH_RATE * delta)
         slerpUnit(smoothTrail.current, smoothTrail.current, _target, t)
       }
-    } else if (jumped || initialChanged) {
+    } else if (timeRewound || initialChanged) {
       trailPoints.current = []
       trailMesh.geometry.setDrawRange(0, 0)
       smoothTrail.current.copy(_target)
