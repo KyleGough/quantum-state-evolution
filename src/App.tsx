@@ -1,7 +1,6 @@
 import { BlochSphere } from './components/BlochSphere/BlochSphere'
 import { PlaybackControls } from './components/PlaybackControls'
-import { HamiltonianControls } from './components/HamiltonianControls'
-import { DiracPanel } from './components/DiracPanel'
+import { Sidebar } from './components/Sidebar'
 import { usePlaybackLoop } from './playback/usePlaybackLoop'
 
 function GitHubIcon() {
@@ -44,10 +43,7 @@ export default function App() {
             <PlaybackControls />
           </section>
 
-          <aside className="sidebar app-enter-item">
-            <HamiltonianControls />
-            <DiracPanel />
-          </aside>
+          <Sidebar />
         </main>
       </div>
     </div>
