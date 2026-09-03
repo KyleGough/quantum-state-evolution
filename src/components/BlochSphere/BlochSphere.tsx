@@ -184,6 +184,7 @@ function BlochTipEnergyPopover({
         energy={eigen.energy}
         omegaR={eigen.omegaR}
         which={which}
+        epsilon={hamiltonian.epsilon}
       />
     </BlochMarkerPopover>
   )

@@ -32,11 +32,13 @@ export function HamiltonianHint() {
         propagator <KatexInline math={String.raw`e^{-iHt}`} /> is unitary.
       </p>
       <p>
-        Any single-qubit <KatexInline math="H" /> is a real linear combination of Pauli
-        matrices. The sign of each coefficient sets the sense of rotation about that
-        axis:
+        Any single-qubit <KatexInline math="H" /> is a real linear combination of the
+        identity and the Pauli matrices. Pauli coefficients set the sense of rotation
+        about that axis; <KatexInline math={String.raw`\varepsilon I`} /> is a global
+        energy and does not rotate the Bloch vector:
       </p>
       <p className="hint-pauli-row">
+        <KatexInline math={String.raw`I = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}`} />
         <KatexInline math={String.raw`\sigma_x = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}`} />
         <KatexInline math={String.raw`\sigma_y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}`} />
         <KatexInline math={String.raw`\sigma_z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}`} />
@@ -51,6 +53,12 @@ export function HamiltonianHint() {
         <KatexInline math={ket('E_-')} /> at the antipode. The state precesses at{' '}
         <KatexInline math={String.raw`\omega_R = \sqrt{\omega^2 + \Omega_x^2 + \Omega_y^2}`} /> with
         period <KatexInline math={String.raw`T = 2\pi/\omega_R`} />.
+      </p>
+      <p>
+        The identity term <KatexInline math={String.raw`\varepsilon I`} /> is a global
+        energy: it does not rotate the Bloch vector, but{' '}
+        <KatexInline math={String.raw`|\psi(t)\rangle`} /> picks up a phase{' '}
+        <KatexInline math={String.raw`e^{-i\varepsilon t}`} />.
       </p>
     </>
   )
@@ -190,6 +198,7 @@ export function EnergyEigenvectorHint({
   energy,
   omegaR,
   which,
+  epsilon = 0,
 }: {
   alpha: { re: number; im: number }
   beta: { re: number; im: number }
@@ -197,6 +206,7 @@ export function EnergyEigenvectorHint({
   energy: number
   omegaR: number
   which: EnergyLevel
+  epsilon?: number
 }) {
   const named = namedKetFromBloch(bloch.x, bloch.y, bloch.z)
   const label = which === 'plus' ? ket('E_+') : ket('E_-')
@@ -208,7 +218,7 @@ export function EnergyEigenvectorHint({
       <KatexBlock math={energyEigenvectorKatex(alpha, beta, named, which)} />
       <p>
         <KatexInline math={`H${label} = ${which === 'plus' ? 'E_+' : 'E_-'}\\,${label}`} /> with{' '}
-        <KatexInline math={energyEigenvalueKatex(energy, omegaR, which)} />.
+        <KatexInline math={energyEigenvalueKatex(energy, omegaR, which, epsilon)} />.
       </p>
       <p>
         This is the {rank} eigenvector of <KatexInline math="H" />.

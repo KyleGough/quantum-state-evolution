@@ -21,16 +21,10 @@ function formatComplexKatex(c: Complex, simple: boolean = false): string {
   return simple ? `\\mathtt{${C.formatFixedSimple(c)}}` : `\\mathtt{${C.formatFixed(c)}}`
 }
 
-export function rabiReadoutKatex(omegaR: number, period: number | null): string {
-  const rate = omegaR.toFixed(2)
-  if (period === null) return String.raw`\omega_R = ${rate}`
-  return String.raw`\omega_R = ${rate},\quad T = 2\pi/\omega_R = ${period.toFixed(2)}`
-}
-
 export function hamiltonianKatex(params: HamiltonianParams): string {
   const parts: { sign: number; tex: string }[] = []
 
-  const push = (coeff: number, sigma: string) => {
+  const pushHalf = (coeff: number, sigma: string) => {
     if (Math.abs(coeff) <= 1e-6) return
     parts.push({
       sign: coeff < 0 ? -1 : 1,
@@ -38,9 +32,18 @@ export function hamiltonianKatex(params: HamiltonianParams): string {
     })
   }
 
-  push(params.omega, '\\sigma_z')
-  push(params.OmegaX, '\\sigma_x')
-  push(params.OmegaY, '\\sigma_y')
+  const pushFull = (coeff: number, tex: string) => {
+    if (Math.abs(coeff) <= 1e-6) return
+    parts.push({
+      sign: coeff < 0 ? -1 : 1,
+      tex: `${Math.abs(coeff).toFixed(2)}\\,${tex}`,
+    })
+  }
+
+  pushHalf(params.omega, '\\sigma_z')
+  pushHalf(params.OmegaX, '\\sigma_x')
+  pushHalf(params.OmegaY, '\\sigma_y')
+  pushFull(params.epsilon, 'I')
 
   if (parts.length === 0) return 'H = 0'
 
@@ -130,10 +133,19 @@ export function energyEigenvectorKatex(
   return `${label} = ${vector}`
 }
 
-export function energyEigenvalueKatex(energy: number, omegaR: number, which: EnergyLevel = 'plus'): string {
+export function energyEigenvalueKatex(
+  energy: number,
+  omegaR: number,
+  which: EnergyLevel = 'plus',
+  epsilon: number = 0,
+): string {
   const label = which === 'plus' ? 'E_+' : 'E_-'
   const sign = which === 'plus' ? '+' : '-'
-  return String.raw`${label} = ${sign}\frac{\omega_R}{2} = ${energy.toFixed(2)},\quad \omega_R = ${omegaR.toFixed(2)}`
+  const symbolic =
+    Math.abs(epsilon) <= 1e-6
+      ? String.raw`${sign}\frac{\omega_R}{2}`
+      : String.raw`\varepsilon ${sign} \frac{\omega_R}{2}`
+  return String.raw`${label} = ${symbolic} = ${energy.toFixed(2)},\quad \omega_R = ${omegaR.toFixed(2)}`
 }
 
 export function namedKetFromBloch(x: number, y: number, z: number): string | null {
@@ -162,3 +174,4 @@ export function probKetKatex(n: 0 | 1): string {
 export const SLIDER_OMEGA = `${String.raw`\omega`}~(${SIGMA}_z)`
 export const SLIDER_OMEGA_X = `${String.raw`\Omega`}_x~(${SIGMA}_x)`
 export const SLIDER_OMEGA_Y = `${String.raw`\Omega`}_y~(${SIGMA}_y)`
+export const SLIDER_EPSILON = String.raw`\varepsilon~(I)`

@@ -367,6 +367,10 @@ body {
   margin-bottom: 0.875rem;
 }
 
+.hamiltonian-controls .panel-header {
+  margin-bottom: 0;
+}
+
 .panel-label {
   font-size: 1rem;
   font-weight: 600;
@@ -579,6 +583,14 @@ input[type='range']:active::-moz-range-thumb {
 }
 
 .popover-trigger .dirac-section {
+  margin-bottom: 0;
+}
+
+.popover-trigger:has(.dirac-evolution) {
+  margin-bottom: 0.75rem;
+}
+
+.popover-trigger:has(.dirac-bloch) {
   margin-bottom: 0;
 }
 

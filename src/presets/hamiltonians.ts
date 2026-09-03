@@ -8,19 +8,19 @@ export const HAMILTONIAN_PRESETS = [
     id: 'larmor',
     label: 'Larmor',
     title: 'Precession about z: ω only',
-    params: { omega: 2, OmegaX: 0, OmegaY: 0 },
+    params: { omega: 2, OmegaX: 0, OmegaY: 0, epsilon: 0 },
   },
   {
     id: 'rabi',
     label: 'Resonant Rabi',
     title: 'Drive on resonance: Ωx only',
-    params: { omega: 0, OmegaX: 2, OmegaY: 0 },
+    params: { omega: 0, OmegaX: 2, OmegaY: 0, epsilon: 0 },
   },
   {
     id: 'detuned',
     label: 'Detuned Rabi',
     title: 'Drive off resonance: ω and Ωx',
-    params: { omega: 1.5, OmegaX: 2, OmegaY: 0 },
+    params: { omega: 1.5, OmegaX: 2, OmegaY: 0, epsilon: 0 },
   },
 ] as const
 

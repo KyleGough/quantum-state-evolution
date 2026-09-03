@@ -63,7 +63,7 @@ function notifyUi(set: (partial: Partial<QuantumStore>) => void, partial: Partia
 
 export const useQuantumStore = create<QuantumStore>((set, get) => {
   const psi0 = State.plus()
-  const hamiltonian = { omega: 1.5, OmegaX: 2, OmegaY: 0 }
+  const hamiltonian = { omega: 1.5, OmegaX: 2, OmegaY: 0, epsilon: 0 }
   const derived = computeDerived(psi0, hamiltonian, 0)
 
   return {

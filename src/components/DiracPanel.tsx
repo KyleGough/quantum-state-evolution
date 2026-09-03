@@ -2,14 +2,13 @@ import { memo, useLayoutEffect, useRef } from 'react'
 import { useQuantumStore } from '../store/useQuantumStore'
 import { INITIAL_STATE_PRESETS } from '../presets/hamiltonians'
 import { C, type Complex } from '../sim/complex'
-import { blochPeriod, blochRate, type HamiltonianParams } from '../sim/hamiltonian'
+import { type HamiltonianParams } from '../sim/hamiltonian'
 import { formatRealFixed } from '../sim/format'
 import type { BlochVector } from '../sim/bloch'
 import {
   blochVectorKatex,
   evolutionKatex,
   probKetKatex,
-  rabiReadoutKatex,
   stateVectorKatex,
 } from '../sim/katexFormat'
 import { KatexBlock, KatexInline, renderKatex } from './Katex'
@@ -31,20 +30,26 @@ function signedAxis(v: number, pos: string, neg: string): string {
 }
 
 function TeachingNote({ hamiltonian }: { hamiltonian: HamiltonianParams }) {
-  const { omega, OmegaX, OmegaY } = hamiltonian
+  const { omega, OmegaX, OmegaY, epsilon } = hamiltonian
   const ax = Math.abs(OmegaX)
   const ay = Math.abs(OmegaY)
   const az = Math.abs(omega)
-  const omegaR = blochRate(hamiltonian)
-  const period = blochPeriod(hamiltonian)
+  const ae = Math.abs(epsilon)
 
   let body
   if (ax < 0.01 && ay < 0.01 && az < 0.01) {
-    body = (
-      <p>
-        <KatexInline math="H = 0" />: the state is stationary.
-      </p>
-    )
+    body =
+      ae < 0.01 ? (
+        <p>
+          <KatexInline math="H = 0" />: the state is stationary.
+        </p>
+      ) : (
+        <p>
+          <KatexInline math={String.raw`H = \varepsilon I`} />: the Bloch vector is
+          stationary. <KatexInline math="I" /> is a global energy, the spectrum is
+          degenerate, <KatexInline math={String.raw`E = \varepsilon`} />.
+        </p>
+      )
   } else if (ax < 0.01 && ay < 0.01) {
     body = (
       <p>
@@ -79,14 +84,8 @@ function TeachingNote({ hamiltonian }: { hamiltonian: HamiltonianParams }) {
     )
   }
 
-  return (
-    <>
-      {body}
-      <p className="teaching-readout">
-        <KatexInline math={rabiReadoutKatex(omegaR, period)} />
-      </p>
-    </>
-  )
+
+  return body
 }
 
 function katexSign(n: number): string {
@@ -351,7 +350,7 @@ export function DiracPanel() {
         </Popover>
 
         <Popover content={<EvolutionHint />}>
-          <section className="dirac-section">
+          <section className="dirac-section dirac-evolution">
             <h3 className="section-title">Evolution</h3>
             <KatexBlock math={evolutionKatex()} />
           </section>
@@ -373,7 +372,7 @@ export function DiracPanel() {
         </Popover>
 
         <Popover content={<BlochVectorHint />}>
-          <section className="dirac-section">
+          <section className="dirac-section dirac-bloch">
             <h3 className="section-title">Bloch vector</h3>
             <BlochReadout />
           </section>

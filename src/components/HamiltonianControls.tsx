@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { HAMILTONIAN_PRESETS, matchingHamiltonianPresetId } from '../presets/hamiltonians'
 import { formatRealFixed } from '../sim/format'
-import { hamiltonianKatex, SLIDER_OMEGA, SLIDER_OMEGA_X, SLIDER_OMEGA_Y } from '../sim/katexFormat'
+import { hamiltonianKatex, SLIDER_EPSILON, SLIDER_OMEGA, SLIDER_OMEGA_X, SLIDER_OMEGA_Y } from '../sim/katexFormat'
 import { useQuantumStore } from '../store/useQuantumStore'
 import { KatexBlock, KatexInline } from './Katex'
 import { Popover } from './Popover'
@@ -110,6 +110,11 @@ export function HamiltonianControls() {
         math={SLIDER_OMEGA_Y}
         value={hamiltonian.OmegaY}
         onChange={(OmegaY) => setHamiltonian({ OmegaY })}
+      />
+      <SignedSlider
+        math={SLIDER_EPSILON}
+        value={hamiltonian.epsilon}
+        onChange={(epsilon) => setHamiltonian({ epsilon })}
       />
     </div>
   )

@@ -38,10 +38,17 @@ export interface HamiltonianParams {
   omega: number
   OmegaX: number
   OmegaY: number
+  epsilon: number
 }
 
 export function buildHamiltonian(params: HamiltonianParams): Matrix2 {
-  return pauliCombination(params.OmegaX / 2, params.OmegaY / 2, params.omega / 2)
+  const h = pauliCombination(params.OmegaX / 2, params.OmegaY / 2, params.omega / 2)
+  const e = params.epsilon
+  if (Math.abs(e) < 1e-15) return h
+  return [
+    [C.add(h[0][0], C.from(e)), h[0][1]],
+    [h[1][0], C.add(h[1][1], C.from(e))],
+  ]
 }
 
 /** Bloch rotation rate |Ω⃗| = √(ω² + Ωx² + Ωy²). H = (1/2) Ω⃗ · σ. */
@@ -76,11 +83,11 @@ function gaugeRealNonneg(psi: StateVector): StateVector {
 }
 
 /**
- * Higher-energy eigenstate of H = (1/2) Ω⃗ · σ, Bloch vector along +Ω⃗.
- * Returns null when H = 0 (no preferred axis).
+ * Higher-energy eigenstate of H = ε I + (1/2) Ω⃗ · σ, Bloch vector along +Ω⃗.
+ * Returns null when the Pauli part vanishes (no preferred axis), including H ∝ I.
  */
 export function plusEnergyEigenstate(params: HamiltonianParams): EnergyEigenstate | null {
-  const { omega, OmegaX, OmegaY } = params
+  const { omega, OmegaX, OmegaY, epsilon } = params
   const omegaR = Math.hypot(omega, OmegaX, OmegaY)
   if (omegaR < 1e-12) return null
 
@@ -93,7 +100,7 @@ export function plusEnergyEigenstate(params: HamiltonianParams): EnergyEigenstat
 
   return {
     psi,
-    energy: omegaR / 2,
+    energy: epsilon + omegaR / 2,
     omegaR,
     bloch: {
       x: OmegaX / omegaR,
@@ -120,7 +127,7 @@ export function minusEnergyEigenstate(params: HamiltonianParams): EnergyEigensta
 
   return {
     psi,
-    energy: -plus.energy,
+    energy: params.epsilon - plus.omegaR / 2,
     omegaR: plus.omegaR,
     bloch: {
       x: -plus.bloch.x,
