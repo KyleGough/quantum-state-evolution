@@ -34,8 +34,7 @@ export function HamiltonianHint() {
       <p>
         Any single-qubit <KatexInline math="H" /> is a real linear combination of the
         identity and the Pauli matrices. Pauli coefficients set the sense of rotation
-        about that axis; <KatexInline math={String.raw`\varepsilon I`} /> is a global
-        energy and does not rotate the Bloch vector:
+        about that axis.
       </p>
       <p className="hint-pauli-row">
         <KatexInline math={String.raw`I = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}`} />
@@ -131,10 +130,7 @@ export function CurrentStateHint() {
         Both are complex numbers.
       </p>
       <p>
-        Their squared moduli must sum to 1:
-      </p>
-      <p>
-        <KatexInline math={String.raw`|\alpha|^2 + |\beta|^2 = 1`} />.
+        <KatexInline math={String.raw`|\alpha|^2 + |\beta|^2 = \alpha\alpha^* + \beta\beta^* = 1`} />.
       </p>
     </>
   )

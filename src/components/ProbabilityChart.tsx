@@ -5,7 +5,7 @@ import { axisWindow, probabilityTimeSeries } from '../sim/probabilitySeries'
 
 const VB_W = 320
 const VB_H = 140
-const PAD = { l: 28, r: 10, t: 8, b: 28 }
+const PAD = { l: 28, r: 28, t: 8, b: 28 }
 
 const PLOT_W = VB_W - PAD.l - PAD.r
 const PLOT_H = VB_H - PAD.t - PAD.b
