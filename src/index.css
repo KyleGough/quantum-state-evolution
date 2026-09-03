@@ -1122,3 +1122,67 @@ input[type='range']:active::-moz-range-thumb {
     right: 0.625rem;
   }
 }
+
+/* Time-dependent Hamiltonian controls */
+
+.td-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-fill);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0.1rem 0.4rem;
+  line-height: 1;
+}
+
+.modulation-section {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.modulation-summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 0.25rem 0;
+  user-select: none;
+  list-style: none;
+}
+
+.modulation-summary::-webkit-details-marker {
+  display: none;
+}
+
+.modulation-summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 0.4rem;
+  transition: transform 0.2s var(--ease);
+}
+
+details.modulation-section[open] > .modulation-summary::before {
+  transform: rotate(90deg);
+}
+
+.modulation-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.modulation-group {
+  margin-top: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.modulation-axis-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+  opacity: 0.8;
+}

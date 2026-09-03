@@ -1,6 +1,6 @@
 import type { Complex } from './complex'
 import { C } from './complex'
-import type { HamiltonianParams } from './hamiltonian'
+import { isTimeDependent, type HamiltonianParams } from './hamiltonian'
 import { formatRealFixed } from './format'
 
 // String.raw keeps `\rangle` / `\langle` as literal LaTeX (JS would treat `\r` as CR).
@@ -28,9 +28,10 @@ export function rabiReadoutKatex(omegaR: number, period: number | null): string 
 }
 
 export function hamiltonianKatex(params: HamiltonianParams): string {
+  const td = isTimeDependent(params)
   const parts: { sign: number; tex: string }[] = []
 
-  const push = (coeff: number, sigma: string) => {
+  const pushStatic = (coeff: number, sigma: string) => {
     if (Math.abs(coeff) <= 1e-6) return
     parts.push({
       sign: coeff < 0 ? -1 : 1,
@@ -38,11 +39,46 @@ export function hamiltonianKatex(params: HamiltonianParams): string {
     })
   }
 
-  push(params.omega, '\\sigma_z')
-  push(params.OmegaX, '\\sigma_x')
-  push(params.OmegaY, '\\sigma_y')
+  const pushModulated = (
+    base: number,
+    mod: { amplitude: number; driveFreq: number },
+    sigma: string,
+  ) => {
+    const hasBase = Math.abs(base) > 1e-6
+    const hasMod = Math.abs(mod.amplitude) > 1e-6
+    if (!hasBase && !hasMod) return
 
-  if (parts.length === 0) return 'H = 0'
+    if (hasBase && !hasMod) {
+      pushStatic(base, sigma)
+      return
+    }
+
+    if (!hasBase && hasMod) {
+      const a = Math.abs(mod.amplitude)
+      const f = mod.driveFreq.toFixed(2)
+      parts.push({
+        sign: mod.amplitude < 0 ? -1 : 1,
+        tex: `\\frac{${a.toFixed(2)}}{2}\\cos(${f}\\,t)\\,${sigma}`,
+      })
+      return
+    }
+
+    const bSign = base < 0 ? '-' : ''
+    const bAbs = Math.abs(base).toFixed(2)
+    const mSign = mod.amplitude >= 0 ? '+' : '-'
+    const mAbs = Math.abs(mod.amplitude).toFixed(2)
+    const f = mod.driveFreq.toFixed(2)
+    parts.push({
+      sign: 1,
+      tex: `\\frac{${bSign}${bAbs} ${mSign} ${mAbs}\\cos(${f}\\,t)}{2}\\,${sigma}`,
+    })
+  }
+
+  pushStatic(params.omega, '\\sigma_z')
+  pushModulated(params.OmegaX, params.modX, '\\sigma_x')
+  pushModulated(params.OmegaY, params.modY, '\\sigma_y')
+
+  if (parts.length === 0) return td ? 'H(t) = 0' : 'H = 0'
 
   const body = parts
     .map((p, i) => {
@@ -51,7 +87,7 @@ export function hamiltonianKatex(params: HamiltonianParams): string {
     })
     .join(' ')
 
-  return `H = ${body}`
+  return td ? `H(t) = ${body}` : `H = ${body}`
 }
 
 const EQUATORIAL_COLUMNS: Record<string, string> = {
@@ -151,7 +187,10 @@ export function blochVectorKatex(x: number, y: number, z: number): string {
   return `${braket(SIGMA)} = (${formatRealFixed(x)},\\; ${formatRealFixed(y)},\\; ${formatRealFixed(z)})`
 }
 
-export function evolutionKatex(): string {
+export function evolutionKatex(timeDependent = false): string {
+  if (timeDependent) {
+    return String.raw`i\hbar\frac{d}{dt}${ket(`${PSI}(t)`)} = H(t)${ket(`${PSI}(t)`)}`
+  }
   return `${ket(`${PSI}(t)`)} = e^{-iHt}${ket(`${PSI}(0)`)}`
 }
 
@@ -162,3 +201,7 @@ export function probKetKatex(n: 0 | 1): string {
 export const SLIDER_OMEGA = `${String.raw`\omega`}~(${SIGMA}_z)`
 export const SLIDER_OMEGA_X = `${String.raw`\Omega`}_x~(${SIGMA}_x)`
 export const SLIDER_OMEGA_Y = `${String.raw`\Omega`}_y~(${SIGMA}_y)`
+export const SLIDER_MOD_AMP_X = `A_x`
+export const SLIDER_MOD_FREQ_X = `${String.raw`\omega`}_{d,x}`
+export const SLIDER_MOD_AMP_Y = `A_y`
+export const SLIDER_MOD_FREQ_Y = `${String.raw`\omega`}_{d,y}`

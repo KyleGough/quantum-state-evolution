@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { evolveState } from '../sim/evolve'
+import { rk4Evolve } from '../sim/rk4'
 import { stateToBloch, type BlochVector } from '../sim/bloch'
 import { State, type StateVector } from '../sim/state'
-import type { HamiltonianParams } from '../sim/hamiltonian'
+import { isTimeDependent, NO_MODULATION, type AxisModulation, type HamiltonianParams } from '../sim/hamiltonian'
 import type { InitialStateId } from '../presets/hamiltonians'
 
 /** React/DOM subscribers (chart, KaTeX hosts, t readout). R3F polls getState() every frame. */
@@ -40,6 +41,7 @@ interface QuantumStore {
   setPlaying: (playing: boolean) => void
   reset: () => void
   setHamiltonian: (params: Partial<HamiltonianParams>) => void
+  setModulation: (axis: 'x' | 'y', mod: Partial<AxisModulation>) => void
   setInitialState: (id: InitialStateId) => void
   tick: (dt: number) => void
 }
@@ -63,7 +65,13 @@ function notifyUi(set: (partial: Partial<QuantumStore>) => void, partial: Partia
 
 export const useQuantumStore = create<QuantumStore>((set, get) => {
   const psi0 = State.plus()
-  const hamiltonian = { omega: 1.5, OmegaX: 2, OmegaY: 0 }
+  const hamiltonian: HamiltonianParams = {
+    omega: 1.5,
+    OmegaX: 2,
+    OmegaY: 0,
+    modX: { ...NO_MODULATION },
+    modY: { ...NO_MODULATION },
+  }
   const derived = computeDerived(psi0, hamiltonian, 0)
 
   return {
@@ -80,7 +88,6 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
         set({ isPlaying: playing })
         return
       }
-      // Pause publishes the live sim so the chart / t readout are not ~80ms behind.
       notifyUi(set, { isPlaying: playing })
     },
 
@@ -95,6 +102,19 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
 
     setHamiltonian: (params) => {
       const hamiltonian = { ...get().hamiltonian, ...params }
+      const { psi0 } = get()
+      notifyUi(set, {
+        hamiltonian,
+        time: 0,
+        isPlaying: false,
+        ...computeDerived(psi0, hamiltonian, 0),
+      })
+    },
+
+    setModulation: (axis, mod) => {
+      const prev = get().hamiltonian
+      const key = axis === 'x' ? 'modX' : 'modY'
+      const hamiltonian = { ...prev, [key]: { ...prev[key], ...mod } }
       const { psi0 } = get()
       notifyUi(set, {
         hamiltonian,
@@ -121,14 +141,23 @@ export const useQuantumStore = create<QuantumStore>((set, get) => {
       if (!state.isPlaying) return
 
       const next = state.time + dt
-      const derived = computeDerived(state.psi0, state.hamiltonian, next)
-      // Fast path: mutate in place so R3F useFrame / getState() see 60 fps.
-      writeSim(state, next, derived.psi, derived.bloch)
+      let psi: StateVector
+      let bloch: BlochVector
+
+      if (isTimeDependent(state.hamiltonian)) {
+        psi = rk4Evolve(state.psi, state.hamiltonian, state.time, dt)
+        bloch = stateToBloch(psi)
+      } else {
+        const derived = computeDerived(state.psi0, state.hamiltonian, next)
+        psi = derived.psi
+        bloch = derived.bloch
+      }
+
+      writeSim(state, next, psi, bloch)
 
       const now = performance.now()
       if (now - lastUiNotifyAt < UI_INTERVAL_MS) return
-      // Slow path: notify React (chart, playback t, KaTeX hosts) at ~12 Hz.
-      notifyUi(set, { time: next, psi: derived.psi, bloch: derived.bloch })
+      notifyUi(set, { time: next, psi, bloch })
     },
   }
 })

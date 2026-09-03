@@ -34,14 +34,47 @@ function pauliCombination(hx: number, hy: number, hz: number): Matrix2 {
   return h
 }
 
+/** Per-axis cosine modulation: coefficient becomes base + amplitude * cos(driveFreq * t). */
+export interface AxisModulation {
+  amplitude: number
+  driveFreq: number
+}
+
+export const NO_MODULATION: AxisModulation = { amplitude: 0, driveFreq: 0 }
+
 export interface HamiltonianParams {
   omega: number
   OmegaX: number
   OmegaY: number
+  /** Cosine modulation on σ_x axis */
+  modX: AxisModulation
+  /** Cosine modulation on σ_y axis */
+  modY: AxisModulation
+}
+
+/** True when any modulation amplitude is nonzero → need ODE solver. */
+export function isTimeDependent(params: HamiltonianParams): boolean {
+  return Math.abs(params.modX.amplitude) > 1e-12 || Math.abs(params.modY.amplitude) > 1e-12
+}
+
+/** Build H(t) at a specific time. When modulation is zero this equals the static H. */
+export function buildHamiltonianAtTime(params: HamiltonianParams, t: number): Matrix2 {
+  const OmegaXt = params.OmegaX + params.modX.amplitude * Math.cos(params.modX.driveFreq * t)
+  const OmegaYt = params.OmegaY + params.modY.amplitude * Math.cos(params.modY.driveFreq * t)
+  return pauliCombination(OmegaXt / 2, OmegaYt / 2, params.omega / 2)
+}
+
+/** Instantaneous Bloch-sphere rotation axis direction at time t (unit vector or null if H≈0). */
+export function instantaneousAxis(params: HamiltonianParams, t: number): { x: number; y: number; z: number } | null {
+  const OmegaXt = params.OmegaX + params.modX.amplitude * Math.cos(params.modX.driveFreq * t)
+  const OmegaYt = params.OmegaY + params.modY.amplitude * Math.cos(params.modY.driveFreq * t)
+  const len = Math.hypot(OmegaXt, OmegaYt, params.omega)
+  if (len < 1e-12) return null
+  return { x: OmegaXt / len, y: OmegaYt / len, z: params.omega / len }
 }
 
 export function buildHamiltonian(params: HamiltonianParams): Matrix2 {
-  return pauliCombination(params.OmegaX / 2, params.OmegaY / 2, params.omega / 2)
+  return buildHamiltonianAtTime(params, 0)
 }
 
 /** Bloch rotation rate |Ω⃗| = √(ω² + Ωx² + Ωy²). H = (1/2) Ω⃗ · σ. */

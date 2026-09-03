@@ -5,7 +5,7 @@ import { OrbitControls, useCursor } from '@react-three/drei'
 import * as THREE from 'three'
 import { useQuantumStore } from '../../store/useQuantumStore'
 import { ket, stateVectorKatex } from '../../sim/katexFormat'
-import { minusEnergyEigenstate, plusEnergyEigenstate } from '../../sim/hamiltonian'
+import { instantaneousAxis, isTimeDependent, minusEnergyEigenstate, plusEnergyEigenstate } from '../../sim/hamiltonian'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { KatexBlock } from '../Katex'
 import { EnergyEigenvectorHint } from '../SectionHints'
@@ -633,9 +633,16 @@ function EnergyEigenstateTip({
   useCursor(hovered)
 
   useFrame((state) => {
-    const { hamiltonian, isPlaying } = useQuantumStore.getState()
-    const len = Math.hypot(hamiltonian.OmegaX, hamiltonian.OmegaY, hamiltonian.omega)
-    const visible = len >= 1e-6
+    const { hamiltonian, isPlaying, time } = useQuantumStore.getState()
+    const td = isTimeDependent(hamiltonian)
+    const axis = td
+      ? instantaneousAxis(hamiltonian, time)
+      : (() => {
+          const len = Math.hypot(hamiltonian.OmegaX, hamiltonian.OmegaY, hamiltonian.omega)
+          if (len < 1e-6) return null
+          return { x: hamiltonian.OmegaX / len, y: hamiltonian.OmegaY / len, z: hamiltonian.omega / len }
+        })()
+    const visible = axis !== null
     const pulse = isPlaying ? 1 : 0
     const clock = state.clock.elapsedTime
 
@@ -653,9 +660,9 @@ function EnergyEigenstateTip({
     }
 
     _energyPos.set(
-      (sign * hamiltonian.OmegaX) / len,
-      (sign * hamiltonian.omega) / len,
-      (sign * hamiltonian.OmegaY) / len,
+      sign * axis.x,
+      sign * axis.z,
+      sign * axis.y,
     )
 
     if (tipRef.current) {

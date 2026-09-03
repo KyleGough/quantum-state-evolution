@@ -96,7 +96,27 @@ export function InitialStateHint() {
   )
 }
 
-export function EvolutionHint() {
+export function EvolutionHint({ timeDependent = false }: { timeDependent?: boolean }) {
+  if (timeDependent) {
+    return (
+      <>
+        <p>
+          <KatexInline math="H(t)" /> varies with time, so there is no closed-form
+          propagator. The simulator integrates the time-dependent Schrödinger equation
+          directly:
+        </p>
+        <p>
+          <KatexInline math={String.raw`i\hbar\frac{d}{dt}${ket(`${PSI}(t)`)} = H(t)${ket(`${PSI}(t)`)}`} />
+        </p>
+        <p>
+          Each frame is advanced using a{' '}
+          <strong>4th-order Runge–Kutta</strong> integrator (100 sub-steps per frame),
+          with <KatexInline math={String.raw`\|\psi\| = 1`} /> enforced after every step
+          to counter unitarity drift.
+        </p>
+      </>
+    )
+  }
   return (
     <>
       <p>
@@ -105,6 +125,10 @@ export function EvolutionHint() {
       </p>
       <p>
         <KatexInline math={`${ket(`${PSI}(t)`)} = e^{-iHt}${ket(`${PSI}(0)`)}`} />
+      </p>
+      <p>
+        The matrix exponential is computed analytically — no numerical integration is
+        needed.
       </p>
     </>
   )

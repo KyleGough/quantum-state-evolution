@@ -2,7 +2,7 @@ import { memo, useLayoutEffect, useRef } from 'react'
 import { useQuantumStore } from '../store/useQuantumStore'
 import { INITIAL_STATE_PRESETS } from '../presets/hamiltonians'
 import { C, type Complex } from '../sim/complex'
-import { blochPeriod, blochRate, type HamiltonianParams } from '../sim/hamiltonian'
+import { blochPeriod, blochRate, isTimeDependent, type HamiltonianParams } from '../sim/hamiltonian'
 import { formatRealFixed } from '../sim/format'
 import type { BlochVector } from '../sim/bloch'
 import {
@@ -30,6 +30,91 @@ function signedAxis(v: number, pos: string, neg: string): string {
   return v < 0 ? neg : pos
 }
 
+function TeachingNoteTD({ hamiltonian }: { hamiltonian: HamiltonianParams }) {
+  const { omega, OmegaX, OmegaY, modX, modY } = hamiltonian
+  const hasModX = Math.abs(modX.amplitude) > 1e-6
+  const hasModY = Math.abs(modY.amplitude) > 1e-6
+  const hasBaseX = Math.abs(OmegaX) > 1e-6
+  const hasBaseY = Math.abs(OmegaY) > 1e-6
+  const hasZ = Math.abs(omega) > 1e-6
+
+  const isResonantX = hasZ && hasModX && !hasModY && Math.abs(modX.driveFreq - Math.abs(omega)) < 0.05
+  const isDetuned = hasZ && hasModX && !hasModY && !isResonantX
+  const isRotating = hasModX && hasModY && Math.abs(modX.amplitude - modY.amplitude) < 0.05 && Math.abs(modX.driveFreq - modY.driveFreq) < 0.05
+
+  if (isRotating) {
+    return (
+      <>
+        <p>
+          Equal cosine drives on <KatexInline math={String.raw`\sigma_x`} /> and{' '}
+          <KatexInline math={String.raw`\sigma_y`} /> at the same frequency create a{' '}
+          <strong>circularly polarised field</strong>. In the rotating frame this
+          looks like a static transverse field — resonance causes continuous Rabi
+          flopping.
+        </p>
+        <p>
+          The rotation axis on the Bloch sphere traces a circle in the x–y plane.
+        </p>
+      </>
+    )
+  }
+
+  if (isResonantX) {
+    return (
+      <>
+        <p>
+          <strong>Resonant drive:</strong> the drive frequency{' '}
+          <KatexInline math={String.raw`\omega_d \approx \omega`} />. In the rotating
+          frame the oscillating field appears static. The qubit undergoes clean{' '}
+          <strong>Rabi oscillations</strong> — the Bloch vector periodically sweeps
+          from pole to pole.
+        </p>
+        <p>
+          Rabi frequency: <KatexInline math={String.raw`\Omega_R = A_x / 2`} />.
+        </p>
+      </>
+    )
+  }
+
+  if (isDetuned) {
+    const detuning = modX.driveFreq - Math.abs(omega)
+    return (
+      <>
+        <p>
+          <strong>Off-resonance drive:</strong> detuning{' '}
+          <KatexInline math={String.raw`\Delta = \omega_d - \omega`} />{' '}
+          ≈ {detuning.toFixed(2)}. Population transfer is incomplete — the Bloch
+          vector traces a smaller loop and never reaches the antipode.
+        </p>
+        <p>
+          The effective Rabi frequency is{' '}
+          <KatexInline math={String.raw`\tilde\Omega = \sqrt{(A_x/2)^2 + \Delta^2}`} />,
+          faster but shallower than on resonance.
+        </p>
+      </>
+    )
+  }
+
+  // General time-dependent case
+  const axes: string[] = []
+  if (hasZ) axes.push(`static ${signedAxis(omega, '+z', '-z')}`)
+  if (hasBaseX || hasModX) axes.push(`driven ${signedAxis(OmegaX || modX.amplitude, '+x', '-x')}`)
+  if (hasBaseY || hasModY) axes.push(`driven ${signedAxis(OmegaY || modY.amplitude, '+y', '-y')}`)
+
+  return (
+    <>
+      <p>
+        Time-dependent Hamiltonian: the rotation axis moves continuously. Solved with
+        RK4 (100 sub-steps per frame). Components: {axes.join(', ')}.
+      </p>
+      <p>
+        The red markers on the Bloch sphere track the instantaneous{' '}
+        <KatexInline math="H(t)" /> direction in real time.
+      </p>
+    </>
+  )
+}
+
 function TeachingNote({ hamiltonian }: { hamiltonian: HamiltonianParams }) {
   const { omega, OmegaX, OmegaY } = hamiltonian
   const ax = Math.abs(OmegaX)
@@ -37,6 +122,10 @@ function TeachingNote({ hamiltonian }: { hamiltonian: HamiltonianParams }) {
   const az = Math.abs(omega)
   const omegaR = blochRate(hamiltonian)
   const period = blochPeriod(hamiltonian)
+
+  if (isTimeDependent(hamiltonian)) {
+    return <TeachingNoteTD hamiltonian={hamiltonian} />
+  }
 
   let body
   if (ax < 0.01 && ay < 0.01 && az < 0.01) {
@@ -350,10 +439,10 @@ export function DiracPanel() {
           </section>
         </Popover>
 
-        <Popover content={<EvolutionHint />}>
+        <Popover content={<EvolutionHint timeDependent={isTimeDependent(hamiltonian)} />}>
           <section className="dirac-section">
             <h3 className="section-title">Evolution</h3>
-            <KatexBlock math={evolutionKatex()} />
+            <KatexBlock math={evolutionKatex(isTimeDependent(hamiltonian))} />
           </section>
         </Popover>
 

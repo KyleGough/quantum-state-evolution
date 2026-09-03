@@ -1,5 +1,6 @@
 import { C } from './complex'
-import { matrixExpHermitian, buildHamiltonian, type HamiltonianParams } from './hamiltonian'
+import { matrixExpHermitian, buildHamiltonian, isTimeDependent, type HamiltonianParams } from './hamiltonian'
+import { rk4Evolve } from './rk4'
 import { Mat, State, type Matrix2, type StateVector } from './state'
 
 const MIN_AXIS_T = 1
@@ -16,6 +17,8 @@ interface SeriesCache {
   /** Grid index of samples[0]. Sample i is at t = i * SAMPLE_DT. */
   firstIndex: number
   samples: ProbabilitySample[]
+  /** For time-dependent H: the psi at the last sample's time, to avoid re-evolving. */
+  lastPsi?: StateVector
 }
 
 let cache: SeriesCache | null = null
@@ -33,12 +36,20 @@ function sameParams(a: HamiltonianParams, b: HamiltonianParams): boolean {
   return a === b || (
     a.omega === b.omega &&
     a.OmegaX === b.OmegaX &&
-    a.OmegaY === b.OmegaY
+    a.OmegaY === b.OmegaY &&
+    a.modX.amplitude === b.modX.amplitude &&
+    a.modX.driveFreq === b.modX.driveFreq &&
+    a.modY.amplitude === b.modY.amplitude &&
+    a.modY.driveFreq === b.modY.driveFreq
   )
 }
 
-function sampleAt(psi0: StateVector, H: Matrix2, t: number): ProbabilitySample {
+function sampleAtStatic(psi0: StateVector, H: Matrix2, t: number): ProbabilitySample {
   const psi = State.normalize(Mat.mulVec(matrixExpHermitian(H, t), psi0))
+  return { t, p0: C.abs2(psi[0]), p1: C.abs2(psi[1]) }
+}
+
+function sampleFromPsi(psi: StateVector, t: number): ProbabilitySample {
   return { t, p0: C.abs2(psi[0]), p1: C.abs2(psi[1]) }
 }
 
@@ -52,14 +63,46 @@ function getCache(psi0: StateVector, params: HamiltonianParams): SeriesCache {
 
 /** Fill a consecutive grid block [i0, i1], reusing cached samples where they overlap. */
 function ensureGrid(c: SeriesCache, psi0: StateVector, params: HamiltonianParams, i0: number, i1: number) {
+  const td = isTimeDependent(params)
   const heldLast = c.firstIndex + c.samples.length - 1
   const disjoint = c.samples.length === 0 || i1 < c.firstIndex || i0 > heldLast + 1
+
+  if (td) {
+    // For time-dependent H, must evolve sequentially from t=0.
+    if (disjoint || i0 < c.firstIndex) {
+      c.firstIndex = 0
+      c.samples = [sampleFromPsi(psi0, 0)]
+      let psi = psi0
+      for (let i = 1; i <= i1; i++) {
+        psi = rk4Evolve(psi, params, (i - 1) * SAMPLE_DT, SAMPLE_DT)
+        c.samples.push(sampleFromPsi(psi, i * SAMPLE_DT))
+      }
+      c.lastPsi = psi
+    } else {
+      const next = c.firstIndex + c.samples.length
+      if (next <= i1) {
+        let psi = c.lastPsi ?? psi0
+        for (let i = next; i <= i1; i++) {
+          psi = rk4Evolve(psi, params, (i - 1) * SAMPLE_DT, SAMPLE_DT)
+          c.samples.push(sampleFromPsi(psi, i * SAMPLE_DT))
+        }
+        c.lastPsi = psi
+      }
+    }
+    if (i0 > c.firstIndex) {
+      c.samples.splice(0, i0 - c.firstIndex)
+      c.firstIndex = i0
+    }
+    return
+  }
+
+  // Static H: random-access via matrix exponential
   if (disjoint) {
     const H = buildHamiltonian(params)
     c.firstIndex = i0
     c.samples = []
     for (let i = i0; i <= i1; i++) {
-      c.samples.push(sampleAt(psi0, H, i * SAMPLE_DT))
+      c.samples.push(sampleAtStatic(psi0, H, i * SAMPLE_DT))
     }
     return
   }
@@ -73,7 +116,7 @@ function ensureGrid(c: SeriesCache, psi0: StateVector, params: HamiltonianParams
   if (next <= i1) {
     const H = buildHamiltonian(params)
     for (let i = next; i <= i1; i++) {
-      c.samples.push(sampleAt(psi0, H, i * SAMPLE_DT))
+      c.samples.push(sampleAtStatic(psi0, H, i * SAMPLE_DT))
     }
   }
 }
